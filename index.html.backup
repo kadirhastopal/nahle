@@ -343,7 +343,7 @@
                             />
                         </div>
                         <div>
-                            <select name="tour_type" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nahletur-primary focus:border-transparent transition-all">
+                            <select name="tour-type" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nahletur-primary focus:border-transparent transition-all">
                                 <option value="">Hangi tur ile ilgileniyorsunuz?</option>
                                 <option value="hac">Hac Turları</option>
                                 <option value="umre">Umre Turları</option>
@@ -427,8 +427,6 @@
 
     <!-- JavaScript -->
     <script>
-        console.log('📧 Contact form event listener eklendi');
-        
         // Mobile menu toggle
         document.getElementById('mobile-menu-btn').addEventListener('click', function() {
             const mobileMenu = document.getElementById('mobile-menu');
@@ -452,113 +450,11 @@
         });
 
         // Contact form submission
-        document.getElementById('contact-form').addEventListener('submit', async function(e) {
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            console.log('📧 Contact form submit event tetiklendi');
-            
-            // Loading durumu göster
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = `
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Gönderiliyor...
-            `;
-            submitBtn.disabled = true;
-            
-            try {
-                // Form verilerini topla
-                const formData = new FormData(e.target);
-                const data = {
-                    name: formData.get('name'),
-                    email: formData.get('email'),
-                    phone: formData.get('phone'),
-                    tour_type: formData.get('tour_type'),
-                    message: formData.get('message')
-                };
-                
-                console.log('📧 Form verileri:', data);
-                
-                // API'ye gönder
-                const response = await fetch('/api/contact', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                console.log('📧 API yanıtı:', response.status);
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Başarı mesajı göster
-                    showNotification('success', 'Mesajınız başarıyla gönderildi! En kısa sürede size dönüş yapacağız.');
-                    e.target.reset();
-                } else {
-                    // Hata mesajı göster
-                    showNotification('error', result.message || 'Mesaj gönderilirken bir hata oluştu.');
-                }
-                
-            } catch (error) {
-                console.error('Contact form error:', error);
-                showNotification('error', 'Bağlantı hatası. Lütfen tekrar deneyin.');
-            } finally {
-                // Button'u eski haline getir
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
+            alert('Mesajınız alındı! En kısa sürede size dönüş yapacağız.');
+            this.reset();
         });
-
-        // Bildirim gösterme fonksiyonu
-        function showNotification(type, message) {
-            // Mevcut bildirimleri kaldır
-            const existingNotifications = document.querySelectorAll('.notification');
-            existingNotifications.forEach(notification => notification.remove());
-            
-            // Yeni bildirim oluştur
-            const notification = document.createElement('div');
-            notification.className = `notification fixed top-4 right-4 z-50 max-w-sm p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
-                type === 'success' 
-                    ? 'bg-green-500 text-white' 
-                    : 'bg-red-500 text-white'
-            }`;
-            
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        ${type === 'success' 
-                            ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>'
-                            : '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>'
-                        }
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium">${message}</p>
-                    </div>
-                    <div class="ml-auto pl-3">
-                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-white hover:opacity-75">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // 5 saniye sonra otomatik kaldır
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.style.transform = 'translateX(100%)';
-                    setTimeout(() => notification.remove(), 300);
-                }
-            }, 5000);
-        }
 
         // Add fade-in animation on scroll
         const observerOptions = {

@@ -183,6 +183,8 @@ function showSection(sectionName) {
     
     // Load section specific data
     if (sectionName === 'dashboard') {
+    } else if (sectionName === 'messages') {
+        messagesManager.loadMessages();
         dashboardManager.loadDashboardData();
     }
 }

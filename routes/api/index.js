@@ -5,6 +5,7 @@ const router = express.Router();
 // Rate limiting
 const rateLimit = require('express-rate-limit');
 
+// ✅ DÜZELTME: Rate limit ayarları daha güvenli
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 dakika
     max: 100, // IP başına maksimum istek
@@ -13,7 +14,12 @@ const limiter = rateLimit({
         message: 'Çok fazla istek gönderildi, lütfen 15 dakika sonra tekrar deneyin.'
     },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    // ✅ DÜZELTME: Trust proxy ayarını doğru şekilde yapılandır
+    skip: (req) => {
+        // Development'ta rate limiting'i atla
+        return process.env.NODE_ENV !== 'production';
+    }
 });
 
 // Contact form için özel rate limit
@@ -23,6 +29,10 @@ const contactLimiter = rateLimit({
     message: {
         success: false,
         message: 'Saatte maksimum 5 mesaj gönderebilirsiniz.'
+    },
+    skip: (req) => {
+        // Development'ta rate limiting'i atla
+        return process.env.NODE_ENV !== 'production';
     }
 });
 

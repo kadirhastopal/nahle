@@ -215,10 +215,13 @@
                 </div>
                 
                 <div id="messagesSection" class="section-content hidden">
-                    <div class="bg-white rounded-xl shadow-sm border p-6">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Mesaj Yönetimi</h3>
-                        <p class="text-gray-600">Mesaj yönetimi sayfası yakında gelecek...</p>
+                    <div id="messagesContent">
+                        <div class="text-center py-8">
+                            <div class="animate-spin w-8 h-8 border-4 border-admin-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                            <p class="text-gray-500">Mesajlar yükleniyor...</p>
+                        </div>
                     </div>
+                </div>
                 </div>
                 
                 <div id="settingsSection" class="section-content hidden">
@@ -237,6 +240,7 @@
     <!-- JavaScript Modules -->
     <script src="/admin/js/auth.js"></script>
     <script src="/admin/js/dashboard.js"></script>
+<script src="/admin/js/messages.js"></script>
     
     <!-- Main App Script -->
     <script src="/admin/js/app.js"></script>
