@@ -25,6 +25,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .sidebar-animation { transition: all 0.3s ease-in-out; }
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .gradient-bg { background: linear-gradient(135deg, #a8145b 0%, #8b1249 100%); }
@@ -104,106 +105,91 @@
 
     <!-- Admin Dashboard -->
     <div id="adminDashboard" class="hidden min-h-screen bg-gray-100">
-        <!-- Top Navigation Bar -->
-        <nav class="gradient-bg shadow-lg">
-            <div class="mx-auto px-4">
-                <div class="flex justify-between h-16">
-                    <!-- Logo & Brand -->
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 flex items-center">
-                            <h1 class="text-xl font-bold text-white">Nahletur Admin</h1>
-                        </div>
-                        
-                        <!-- Desktop Navigation -->
-                        <div class="hidden md:ml-8 md:flex md:space-x-1">
-                            <a href="#" onclick="showSection('dashboard')" 
-                               class="nav-item active px-4 py-2 rounded-md text-sm font-medium text-white bg-admin-secondary hover:bg-admin-secondary transition-colors">
-                                📊 Dashboard
-                            </a>
-                            <a href="#" onclick="showSection('tours')" 
-                               class="nav-item px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                                🚌 Turlar
-                            </a>
-                            <a href="#" onclick="showSection('categories')" 
-                               class="nav-item px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                                📂 Kategoriler
-                            </a>
-                            <a href="#" onclick="showSection('messages')" 
-                               class="nav-item px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                                📧 Mesajlar
-                                <span id="newMessagesCount" class="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full hidden">0</span>
-                            </a>
-                            <a href="#" onclick="showSection('settings')" 
-                               class="nav-item px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                                ⚙️ Ayarlar
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- User Menu -->
-                    <div class="flex items-center space-x-4">
-                        <span class="text-pink-100 text-sm">
-                            Hoş geldin, <span id="userDisplayName" class="font-semibold text-white">Admin</span>
-                        </span>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-white bg-opacity-20 text-white rounded-full flex items-center justify-center">
-                                <span id="userInitial" class="text-sm font-semibold">A</span>
-                            </div>
-                            <button onclick="logout()" 
-                                    class="text-pink-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                                    title="Çıkış Yap">
-                                🚪 Çıkış
-                            </button>
-                        </div>
-                        
-                        <!-- Mobile menu button -->
-                        <div class="md:hidden">
-                            <button id="mobileMenuBtn" class="text-pink-100 hover:text-white p-2 rounded-md">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+        <!-- Sidebar -->
+        <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 gradient-bg transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0 sidebar-animation">
+            <div class="flex items-center justify-center h-16 px-4 border-b border-pink-400">
+                <h1 class="text-xl font-bold text-white">Nahletur Admin</h1>
+            </div>
+            
+            <nav class="mt-8">
+                <div class="px-4 space-y-2">
+                    <a href="#" onclick="showSection('dashboard')" class="nav-item active flex items-center px-4 py-3 text-white rounded-lg hover:bg-pink-700 transition-colors">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+                    
+                    <a href="#" onclick="showSection('tours')" class="nav-item flex items-center px-4 py-3 text-pink-100 rounded-lg hover:bg-pink-700 hover:text-white transition-colors">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Turlar
+                    </a>
+                    
+                    <a href="#" onclick="showSection('categories')" class="nav-item flex items-center px-4 py-3 text-pink-100 rounded-lg hover:bg-pink-700 hover:text-white transition-colors">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13V12a1 1 0 011-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Kategoriler
+                    </a>
+                    
+                    <a href="#" onclick="showSection('messages')" class="nav-item flex items-center px-4 py-3 text-pink-100 rounded-lg hover:bg-pink-700 hover:text-white transition-colors">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                        </svg>
+                        Mesajlar
+                        <span id="newMessagesCount" class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full hidden">0</span>
+                    </a>
+                    
+                    <a href="#" onclick="showSection('settings')" class="nav-item flex items-center px-4 py-3 text-pink-100 rounded-lg hover:bg-pink-700 hover:text-white transition-colors">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                        </svg>
+                        Ayarlar
+                    </a>
                 </div>
                 
-                <!-- Mobile Navigation -->
-                <div id="mobileMenu" class="md:hidden hidden pb-4">
-                    <div class="space-y-1">
-                        <a href="#" onclick="showSection('dashboard')" 
-                           class="nav-item-mobile block px-4 py-2 text-sm font-medium text-white bg-admin-secondary rounded-md">
-                            📊 Dashboard
-                        </a>
-                        <a href="#" onclick="showSection('tours')" 
-                           class="nav-item-mobile block px-4 py-2 text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary rounded-md transition-colors">
-                            🚌 Turlar
-                        </a>
-                        <a href="#" onclick="showSection('categories')" 
-                           class="nav-item-mobile block px-4 py-2 text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary rounded-md transition-colors">
-                            📂 Kategoriler
-                        </a>
-                        <a href="#" onclick="showSection('messages')" 
-                           class="nav-item-mobile block px-4 py-2 text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary rounded-md transition-colors">
-                            📧 Mesajlar
-                        </a>
-                        <a href="#" onclick="showSection('settings')" 
-                           class="nav-item-mobile block px-4 py-2 text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary rounded-md transition-colors">
-                            ⚙️ Ayarlar
-                        </a>
+                <div class="absolute bottom-4 w-full px-4">
+                    <button onclick="logout()" class="w-full flex items-center px-4 py-3 text-pink-100 rounded-lg hover:bg-pink-700 hover:text-white transition-colors">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"></path>
+                        </svg>
+                        Çıkış Yap
+                    </button>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="lg:ml-0">
+            <!-- Top Bar -->
+            <div class="bg-white shadow-sm border-b px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <button id="sidebarToggle" class="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                        <h2 id="pageTitle" class="ml-2 text-2xl font-semibold text-gray-800">Dashboard</h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="text-sm text-gray-600">
+                            Hoş geldin, <span id="userDisplayName" class="font-semibold text-admin-primary">Admin</span>
+                        </div>
+                        <div class="w-8 h-8 bg-admin-primary text-white rounded-full flex items-center justify-center">
+                            <span id="userInitial">A</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </nav>
 
-        <!-- Main Content -->
-        <main class="py-6">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- Page Header -->
-                <div class="mb-6">
-                    <h2 id="pageTitle" class="text-2xl font-bold text-gray-800">Dashboard</h2>
-                </div>
-
-                <!-- Content Sections -->
+            <!-- Page Content -->
+            <div class="p-6">
+                <!-- Dashboard Section -->
                 <div id="dashboardSection" class="section-content">
                     <div id="dashboardContent">
                         <div class="text-center py-8">
@@ -213,6 +199,7 @@
                     </div>
                 </div>
 
+                <!-- Other Sections (Tours, Categories, Messages, Settings) -->
                 <div id="toursSection" class="section-content hidden">
                     <div id="toursContent">
                         <div class="text-center py-8">
@@ -220,6 +207,9 @@
                             <p class="text-gray-500">Turlar yükleniyor...</p>
                         </div>
                     </div>
+                </div>
+                    <div class="bg-white rounded-xl shadow-sm border p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Tur Yönetimi</h3>
                 </div>
                 
                 <div id="categoriesSection" class="section-content hidden">
@@ -237,6 +227,7 @@
                         </div>
                     </div>
                 </div>
+                </div>
                 
                 <div id="settingsSection" class="section-content hidden">
                     <div class="bg-white rounded-xl shadow-sm border p-6">
@@ -245,13 +236,16 @@
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
+
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
 
     <!-- JavaScript Modules -->
     <script src="/admin/js/auth.js"></script>
     <script src="/admin/js/dashboard.js"></script>
-    <script src="/admin/js/messages.js"></script>
+<script src="/admin/js/messages.js"></script>
     <script src="/admin/js/tours.js"></script>
     <script src="/admin/js/tour-form-handler.js"></script>
     

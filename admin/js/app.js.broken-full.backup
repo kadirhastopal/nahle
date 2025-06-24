@@ -34,13 +34,24 @@ class AdminApp {
         // Mobile menu toggle
         const mobileMenuBtn = document.getElementById("mobileMenuBtn");
         if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener("click", this.toggleMobileMenu.bind(this));
+            mobileMenuBtn.addEventListener("click", this.toggleMobileMenu);
         }
-        
         // Login form
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
             loginForm.addEventListener('submit', this.handleLogin.bind(this));
+        }
+
+        // Sidebar toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', this.toggleSidebar);
+        }
+
+        // Sidebar overlay
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', this.closeSidebar);
         }
     }
 
@@ -112,6 +123,94 @@ class AdminApp {
         console.log('📊 Dashboard verileri yükleniyor...');
         await dashboardManager.loadDashboardData();
     }
+
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        if (sidebar && overlay) {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+    }
+
+    closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        if (sidebar && overlay) {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+    }
+}
+
+// Global functions for navigation
+function showSection(sectionName) {
+    console.log('📄 Section değiştiriliyor:', sectionName);
+    
+    // Hide all sections
+    document.querySelectorAll('.section-content').forEach(section => {
+        section.classList.add('hidden');
+    });
+    
+    // Show selected section
+    document.getElementById(sectionName + 'Section').classList.remove('hidden');
+    
+    // Update navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active', 'text-white', 'bg-pink-700');
+        item.classList.add('text-pink-100');
+    });
+    
+    // Find and activate current nav item
+    const currentNavItem = document.querySelector(`a[onclick="showSection('${sectionName}')"]`);
+    if (currentNavItem) {
+        currentNavItem.classList.remove('text-pink-100');
+        currentNavItem.classList.add('active', 'text-white', 'bg-pink-700');
+    }
+    
+    // Update page title
+    const titles = {
+        'dashboard': 'Dashboard',
+        'tours': 'Tur Yönetimi',
+        'categories': 'Kategori Yönetimi',
+        'messages': 'Mesaj Yönetimi',
+        'settings': 'Site Ayarları'
+    };
+    
+    document.getElementById('pageTitle').textContent = titles[sectionName] || 'Admin Panel';
+    
+    // Close sidebar on mobile
+    if (window.adminApp) {
+        window.adminApp.closeSidebar();
+    }
+    
+    // Load section specific data
+    if (sectionName === 'dashboard') {
+    } else if (sectionName === 'messages') {
+    } else if (sectionName === 'tours') {
+        if (window.toursManager) {
+            toursManager.loadTours();
+        }
+        messagesManager.loadMessages();
+        dashboardManager.loadDashboardData();
+    }
+}
+
+function logout() {
+    console.log('🚪 Çıkış yapılıyor...');
+    authManager.logout();
+    if (window.adminApp) {
+        window.adminApp.showLogin();
+    }
+}
+
+// Initialize app when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    window.adminApp = new AdminApp();
+});
+
 
     toggleMobileMenu() {
         const mobileMenu = document.getElementById('mobileMenu');

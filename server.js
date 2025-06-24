@@ -39,6 +39,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static dosyalar
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/js", express.static(path.join(__dirname, "public/js")));
 app.use("/admin", express.static(path.join(__dirname, "admin")));
 
 // Routes

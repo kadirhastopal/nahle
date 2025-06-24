@@ -143,18 +143,48 @@
     </section>
 
     <!-- Tours Section -->
-    <!-- Tours Section -->
     <section id="hac-turlari" class="py-16 md:py-20 bg-nahletur-light">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">2025 Hac Turları</h2>
                 <p class="text-gray-600">Erken rezervasyon avantajları ile Hac yolculuğunuz için şimdi kaydolun</p>
             </div>
-            <div id="dynamic-tours-container" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Loading state -->
-                <div class="col-span-full text-center py-8">
-                    <div class="animate-spin w-8 h-8 border-4 border-nahletur-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p class="text-gray-500">Turlar yükleniyor...</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover-lift overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800">Ekonomik Hac Paketi</h3>
+                            <span class="bg-nahletur-primary text-white px-3 py-1 rounded-full text-sm">Popüler</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">15 günlük program, 3-4 kişilik odalar, rehberlik hizmeti dahil</p>
+                        <div class="text-2xl font-bold text-nahletur-primary mb-4">₺XX.XXX</div>
+                        <button class="w-full bg-nahletur-primary text-white py-3 rounded-lg hover:bg-nahletur-secondary transition-colors">
+                            Detaylar İçin İletişime Geçin
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover-lift overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800">Konfor Hac Paketi</h3>
+                            <span class="bg-nahletur-accent text-white px-3 py-1 rounded-full text-sm">Tavsiye</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">18 günlük program, 2 kişilik odalar, VIP transferler</p>
+                        <div class="text-2xl font-bold text-nahletur-primary mb-4">₺XX.XXX</div>
+                        <button class="w-full bg-nahletur-primary text-white py-3 rounded-lg hover:bg-nahletur-secondary transition-colors">
+                            Detaylar İçin İletişime Geçin
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover-lift overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Lüks Hac Paketi</h3>
+                        <p class="text-gray-600 mb-4">21 günlük program, tek kişilik odalar, özel rehber</p>
+                        <div class="text-2xl font-bold text-nahletur-primary mb-4">₺XX.XXX</div>
+                        <button class="w-full bg-nahletur-primary text-white py-3 rounded-lg hover:bg-nahletur-secondary transition-colors">
+                            Detaylar İçin İletişime Geçin
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -549,6 +579,5 @@
             observer.observe(section);
         });
     </script>
-    <script src="/js/dynamic-tours.js"></script>
 </body>
 </html>
