@@ -1,10 +1,8 @@
-// public/js/dynamic-tours.js - Ana sayfa dinamik turlar (Hac + Umre ayrı)
+// public/js/dynamic-tours.js - Ana sayfa dinamik turlar
 class DynamicTours {
     constructor() {
         this.tours = [];
         this.categories = [];
-        this.hacTours = [];
-        this.umreTours = [];
     }
 
     async loadTours() {
@@ -13,7 +11,7 @@ class DynamicTours {
             
             // Turları ve kategorileri paralel olarak çek
             const [toursResponse, categoriesResponse] = await Promise.all([
-                fetch('/api/tours?limit=20&status=active'),
+                fetch('/api/tours?limit=6&status=active'),
                 fetch('/api/categories')
             ]);
             
@@ -24,15 +22,10 @@ class DynamicTours {
                 this.tours = toursData.data.tours;
                 this.categories = categoriesData.data.categories;
                 
-                // Turları kategorilere göre ayır
-                this.separateToursByCategory();
-                
                 console.log('✅ Turlar yüklendi:', this.tours.length);
-                console.log('✅ Hac turları:', this.hacTours.length);
-                console.log('✅ Umre turları:', this.umreTours.length);
                 console.log('✅ Kategoriler yüklendi:', this.categories.length);
                 
-                this.renderAllTours();
+                this.renderTours();
             } else {
                 console.error('❌ API hatası');
                 this.showError();
@@ -43,49 +36,23 @@ class DynamicTours {
         }
     }
 
-    separateToursByCategory() {
-        // Kategori ID'lerine göre turları ayır
-        // Hac Turları = category_id: 1
-        // Umre Turları = category_id: 2
-        this.hacTours = this.tours.filter(tour => tour.category_id === 1);
-        this.umreTours = this.tours.filter(tour => tour.category_id === 2);
-    }
+    renderTours() {
+        const toursContainer = document.getElementById('dynamic-tours-container');
+        if (!toursContainer) {
+            console.error('❌ Tours container bulunamadı');
+            return;
+        }
 
-    renderAllTours() {
-        this.renderHacTours();
-        this.renderUmreTours();
-    }
-
-    renderHacTours() {
-        const hacContainer = document.getElementById('dynamic-tours-container');
-        if (!hacContainer) return;
-
-        if (!this.hacTours || this.hacTours.length === 0) {
-            hacContainer.innerHTML = `
+        if (!this.tours || this.tours.length === 0) {
+            toursContainer.innerHTML = `
                 <div class="col-span-full text-center py-8">
-                    <p class="text-gray-600">Henüz aktif hac turu bulunmuyor.</p>
+                    <p class="text-gray-600">Henüz aktif tur bulunmuyor.</p>
                 </div>
             `;
             return;
         }
 
-        hacContainer.innerHTML = this.hacTours.map(tour => this.renderTourCard(tour)).join('');
-    }
-
-    renderUmreTours() {
-        const umreContainer = document.getElementById('umre-tours-container');
-        if (!umreContainer) return;
-
-        if (!this.umreTours || this.umreTours.length === 0) {
-            umreContainer.innerHTML = `
-                <div class="col-span-full text-center py-8">
-                    <p class="text-gray-600">Henüz aktif umre turu bulunmuyor.</p>
-                </div>
-            `;
-            return;
-        }
-
-        umreContainer.innerHTML = this.umreTours.map(tour => this.renderTourCard(tour)).join('');
+        toursContainer.innerHTML = this.tours.map(tour => this.renderTourCard(tour)).join('');
     }
 
     renderTourCard(tour) {
@@ -95,7 +62,7 @@ class DynamicTours {
         // Badge rengini kategori ismine göre belirle
         const badgeClass = tour.category_id === 1 
             ? 'bg-nahletur-primary text-white' 
-            : 'bg-green-600 text-white'; // Umre için yeşil
+            : 'bg-nahletur-accent text-white';
         
         // Kota durumu
         const quotaStatus = tour.available_quota > 0 
@@ -170,25 +137,22 @@ class DynamicTours {
     }
 
     showError() {
-        const containers = ['dynamic-tours-container', 'umre-tours-container'];
-        containers.forEach(containerId => {
-            const container = document.getElementById(containerId);
-            if (container) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center py-8">
-                        <div class="text-red-500 mb-4">
-                            <svg class="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                            </svg>
-                        </div>
-                        <p class="text-gray-600">Turlar yüklenirken hata oluştu.</p>
-                        <button onclick="dynamicTours.loadTours()" class="mt-2 text-nahletur-primary hover:underline">
-                            Tekrar Dene
-                        </button>
+        const toursContainer = document.getElementById('dynamic-tours-container');
+        if (toursContainer) {
+            toursContainer.innerHTML = `
+                <div class="col-span-full text-center py-8">
+                    <div class="text-red-500 mb-4">
+                        <svg class="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
                     </div>
-                `;
-            }
-        });
+                    <p class="text-gray-600">Turlar yüklenirken hata oluştu.</p>
+                    <button onclick="dynamicTours.loadTours()" class="mt-2 text-nahletur-primary hover:underline">
+                        Tekrar Dene
+                    </button>
+                </div>
+            `;
+        }
     }
 }
 

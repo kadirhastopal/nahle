@@ -11,7 +11,7 @@ class ToursManager {
             console.log('🚌 Admin turlar yükleniyor...');
             
             const [toursResponse, categoriesResponse] = await Promise.all([
-                fetch('/api/admin/tours?limit=50', {
+                fetch('/api/tours?limit=50', {
                     headers: authManager.getAuthHeaders()
                 }),
                 fetch('/api/categories', {
@@ -87,17 +87,12 @@ class ToursManager {
             'full': 'bg-yellow-100 text-yellow-800'
         };
 
-        // Görsel durumu kontrolü
-        const hasImage = tour.featured_image || (tour.gallery && tour.gallery.length > 0);
-        const imageCount = tour.gallery ? tour.gallery.length : 0;
-
         return `
             <tr>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div>
                         <div class="font-medium text-gray-900">${tour.title}</div>
                         <div class="text-sm text-gray-500">${tour.duration_days} gün</div>
-                        ${hasImage ? `<div class="text-xs text-green-600">📸 ${imageCount} görsel</div>` : `<div class="text-xs text-gray-400">📷 Görsel yok</div>`}
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -118,13 +113,6 @@ class ToursManager {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex gap-2">
-                        <button 
-                            onclick="imageUploader.showUploadModal(${tour.id}, '${tour.title.replace(/'/g, "\\'")}')"
-                            class="text-purple-600 hover:text-purple-900"
-                            title="Görsel Yükle"
-                        >
-                            📸
-                        </button>
                         <button 
                             onclick="toursManager.editTour(${tour.id})"
                             class="text-blue-600 hover:text-blue-900"

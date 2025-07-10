@@ -41,7 +41,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/js", express.static(path.join(__dirname, "public/js")));
 app.use("/admin", express.static(path.join(__dirname, "admin")));
-app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // ✅ YENİ: Uploads static serve
 
 // Routes
 app.use('/api', require('./routes/api'));
@@ -177,7 +176,6 @@ const startServer = async () => {
             console.log(`📱 Frontend: http://localhost:${PORT}`);
             console.log(`⚙️  Admin Panel: http://localhost:${PORT}/admin`);
             console.log(`🔌 API: http://localhost:${PORT}/api`);
-            console.log(`🖼️  Uploads: http://localhost:${PORT}/uploads`);
             console.log('\n👤 ADMIN GİRİŞ BİLGİLERİ:');
             console.log('   Kullanıcı adı: admin');
             console.log('   Şifre: admin123');

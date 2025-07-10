@@ -188,24 +188,8 @@ function showSection(sectionName) {
             messagesManager.loadMessages();
         }
     } else if (sectionName === 'tours') {
-    } else if (sectionName === 'categories') {
-        if (window.categoriesManager) {
-            categoriesManager.loadCategories();
-        }
         if (window.toursManager) {
-    } else if (sectionName === 'categories') {
-        if (window.categoriesManager) {
-            categoriesManager.loadCategories();
-        }
             toursManager.loadTours();
-    } else if (sectionName === 'categories') {
-        if (window.categoriesManager) {
-            categoriesManager.loadCategories();
-        }
-        }
-    } else if (sectionName === 'categories') {
-        if (window.categoriesManager) {
-            categoriesManager.loadCategories();
         }
     }
 }

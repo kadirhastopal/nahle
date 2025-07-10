@@ -44,7 +44,6 @@ router.use('/tours', require('./tours'));
 router.use('/categories', require('./categories'));
 router.use('/contact', contactLimiter, require('./contact'));
 router.use('/admin', require('./admin'));
-router.use('/upload', require('./upload')); // ✅ YENİ: Upload route'u eklendi
 
 // API Ana endpoint
 router.get('/', (req, res) => {
@@ -55,8 +54,7 @@ router.get('/', (req, res) => {
             tours: '/api/tours',
             categories: '/api/categories',
             contact: '/api/contact',
-            admin: '/api/admin',
-            upload: '/api/upload'
+            admin: '/api/admin'
         },
         version: '1.0.0',
         timestamp: new Date().toISOString()

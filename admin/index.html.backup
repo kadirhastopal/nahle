@@ -223,13 +223,10 @@
                 </div>
                 
                 <div id="categoriesSection" class="section-content hidden">
-                    <div id="categoriesContent">
-                        <div class="text-center py-8">
-                            <div class="animate-spin w-8 h-8 border-4 border-admin-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                            <p class="text-gray-500">Kategoriler yükleniyor...</p>
-                        </div>
+                    <div class="bg-white rounded-xl shadow-sm border p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Kategori Yönetimi</h3>
+                        <p class="text-gray-600">Kategori yönetimi sayfası yakında gelecek...</p>
                     </div>
-                </div>
                 </div>
                 
                 <div id="messagesSection" class="section-content hidden">
@@ -255,8 +252,6 @@
     <script src="/admin/js/auth.js"></script>
     <script src="/admin/js/dashboard.js"></script>
     <script src="/admin/js/messages.js"></script>
-    <script src="/admin/js/categories.js"></script>
-    <script src="/admin/js/category-form-handler.js"></script>
     <script src="/admin/js/tours.js"></script>
     <script src="/admin/js/tour-form-handler.js"></script>
     

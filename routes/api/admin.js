@@ -533,3 +533,236 @@ router.delete('/tours/:id', authMiddleware, async (req, res) => {
         });
     }
 });
+
+// ==================== CATEGORIES MANAGEMENT ====================
+
+// GET /api/admin/categories - Tüm kategorileri listele
+router.get('/categories', authMiddleware, async (req, res) => {
+    try {
+        const { page = 1, limit = 50, status } = req.query;
+        const offset = (page - 1) * limit;
+        
+        const whereClause = {};
+        if (status) whereClause.status = status;
+        
+        const { count, rows } = await Category.findAndCountAll({
+            where: whereClause,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            order: [['created_at', 'DESC']]
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                categories: rows,
+                pagination: {
+                    total: count,
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    pages: Math.ceil(count / limit)
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Admin categories listing error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Kategoriler listelenirken hata oluştu'
+        });
+    }
+});
+
+// POST /api/admin/categories - Yeni kategori ekle
+router.post('/categories', [
+    authMiddleware,
+    body('name')
+        .trim()
+        .isLength({ min: 2, max: 100 })
+        .withMessage('Kategori adı 2-100 karakter arasında olmalıdır'),
+    body('slug')
+        .trim()
+        .isLength({ min: 2, max: 100 })
+        .matches(/^[a-z0-9-]+$/)
+        .withMessage('Slug sadece küçük harf, rakam ve tire içerebilir'),
+    body('description')
+        .optional()
+        .isLength({ max: 500 })
+        .withMessage('Açıklama maksimum 500 karakter olabilir'),
+    handleValidationErrors
+], async (req, res) => {
+    try {
+        const { name, slug, description } = req.body;
+        
+        // Slug benzersizliğini kontrol et
+        const existingCategory = await Category.findOne({ where: { slug } });
+        if (existingCategory) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bu slug zaten kullanılıyor'
+            });
+        }
+        
+        const newCategory = await Category.create({
+            name,
+            slug,
+            description,
+            status: 'active'
+        });
+        
+        res.status(201).json({
+            success: true,
+            message: 'Kategori başarıyla eklendi',
+            data: { category: newCategory }
+        });
+        
+    } catch (error) {
+        console.error('Category creation error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Kategori eklenirken hata oluştu'
+        });
+    }
+});
+
+// PUT /api/admin/categories/:id - Kategori güncelle
+router.put('/categories/:id', [
+    authMiddleware,
+    body('name')
+        .optional()
+        .trim()
+        .isLength({ min: 2, max: 100 })
+        .withMessage('Kategori adı 2-100 karakter arasında olmalıdır'),
+    body('slug')
+        .optional()
+        .trim()
+        .isLength({ min: 2, max: 100 })
+        .matches(/^[a-z0-9-]+$/)
+        .withMessage('Slug sadece küçük harf, rakam ve tire içerebilir'),
+    body('description')
+        .optional()
+        .isLength({ max: 500 })
+        .withMessage('Açıklama maksimum 500 karakter olabilir'),
+    handleValidationErrors
+], async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+        
+        const category = await Category.findByPk(id);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: 'Kategori bulunamadı'
+            });
+        }
+        
+        // Slug değişirse benzersizlik kontrolü
+        if (updateData.slug && updateData.slug !== category.slug) {
+            const existingCategory = await Category.findOne({ 
+                where: { 
+                    slug: updateData.slug,
+                    id: { [require('sequelize').Op.ne]: id }
+                } 
+            });
+            
+            if (existingCategory) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Bu slug zaten kullanılıyor'
+                });
+            }
+        }
+        
+        await category.update(updateData);
+        
+        res.json({
+            success: true,
+            message: 'Kategori başarıyla güncellendi',
+            data: { category }
+        });
+        
+    } catch (error) {
+        console.error('Category update error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Kategori güncellenirken hata oluştu'
+        });
+    }
+});
+
+// PUT /api/admin/categories/:id/status - Kategori durumu değiştir
+router.put('/categories/:id/status', [
+    authMiddleware,
+    body('status')
+        .isIn(['active', 'inactive'])
+        .withMessage('Geçerli bir durum seçiniz'),
+    handleValidationErrors
+], async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        const category = await Category.findByPk(id);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: 'Kategori bulunamadı'
+            });
+        }
+        
+        await category.update({ status });
+        
+        res.json({
+            success: true,
+            message: `Kategori durumu ${status === 'active' ? 'aktif' : 'pasif'} yapıldı`,
+            data: { category }
+        });
+        
+    } catch (error) {
+        console.error('Category status update error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Kategori durumu güncellenirken hata oluştu'
+        });
+    }
+});
+
+// DELETE /api/admin/categories/:id - Kategori sil
+router.delete('/categories/:id', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const category = await Category.findByPk(id);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: 'Kategori bulunamadı'
+            });
+        }
+        
+        // Bu kategoriye ait turlar var mı kontrol et
+        const tourCount = await Tour.count({ where: { category_id: id } });
+        if (tourCount > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Bu kategoriye ait ${tourCount} tur bulunuyor. Önce turları silin veya başka kategoriye taşıyın.`
+            });
+        }
+        
+        await category.destroy();
+        
+        res.json({
+            success: true,
+            message: 'Kategori başarıyla silindi'
+        });
+        
+    } catch (error) {
+        console.error('Category delete error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Kategori silinirken hata oluştu'
+        });
+    }
+});
