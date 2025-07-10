@@ -1,9 +1,10 @@
-// admin/js/tours.js - Admin tur yönetimi
+// admin/js/tours.js - Admin tur yönetimi (DÜZELTİLMİŞ)
 class ToursManager {
     constructor() {
         this.tours = [];
         this.categories = [];
         this.editingTour = null;
+        this.filterStatus = 'all';
     }
 
     async loadTours() {
@@ -26,7 +27,7 @@ class ToursManager {
                 this.tours = toursData.data.tours;
                 this.categories = categoriesData.data.categories;
                 
-                console.log('✅ Admin turlar yüklendi:', this.tours.length);
+                console.log('✅ Admin turlar yüklendi:', this.tours.length, 'tur');
                 this.renderTours();
             } else {
                 console.error('❌ Admin tours API hatası');
@@ -42,6 +43,11 @@ class ToursManager {
         const container = document.getElementById('toursContent');
         if (!container) return;
 
+        // Filtrelenmiş turlar
+        const filteredTours = this.filterStatus === 'all' 
+            ? this.tours 
+            : this.tours.filter(tour => tour.status === this.filterStatus);
+
         container.innerHTML = `
             <div class="bg-white rounded-xl shadow-sm border">
                 <div class="p-6 border-b border-gray-200">
@@ -53,6 +59,9 @@ class ToursManager {
                         >
                             + Yeni Tur Ekle
                         </button>
+                    </div>
+                    <div class="flex gap-2 mb-4">
+                        ${this.renderFilterButtons()}
                     </div>
                 </div>
                 
@@ -69,82 +78,114 @@ class ToursManager {
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            ${this.tours.map(tour => this.renderTourRow(tour)).join('')}
+                            ${filteredTours.map(tour => this.renderTourRow(tour)).join('')}
                         </tbody>
                     </table>
                 </div>
+                
+                ${filteredTours.length === 0 ? `
+                    <div class="text-center py-8">
+                        <p class="text-gray-500">Henüz tur bulunmuyor.</p>
+                    </div>
+                ` : ''}
             </div>
             
             ${this.renderTourModal()}
         `;
     }
 
-    renderTourRow(tour) {
-        const category = this.categories.find(cat => cat.id === tour.category_id);
-        const statusColors = {
-            'active': 'bg-green-100 text-green-800',
-            'inactive': 'bg-red-100 text-red-800',
-            'full': 'bg-yellow-100 text-yellow-800'
-        };
+    renderFilterButtons() {
+        const filters = [
+            { key: 'all', label: 'Tümü', count: this.tours.length },
+            { key: 'active', label: 'Aktif', count: this.tours.filter(t => t.status === 'active').length },
+            { key: 'inactive', label: 'Pasif', count: this.tours.filter(t => t.status === 'inactive').length },
+            { key: 'full', label: 'Dolu', count: this.tours.filter(t => t.status === 'full').length }
+        ];
 
-        // Görsel durumu kontrolü
-        const hasImage = tour.featured_image || (tour.gallery && tour.gallery.length > 0);
-        const imageCount = tour.gallery ? tour.gallery.length : 0;
+        return filters.map(filter => `
+            <button 
+                onclick="toursManager.setFilter('${filter.key}')"
+                class="px-3 py-1 rounded text-sm ${
+                    this.filterStatus === filter.key 
+                        ? 'bg-admin-primary text-white' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }"
+            >
+                ${filter.label} (${filter.count})
+            </button>
+        `).join('');
+    }
+
+    setFilter(status) {
+        this.filterStatus = status;
+        this.renderTours();
+    }
+
+    renderTourRow(tour) {
+        const categoryName = tour.Category ? tour.Category.name : 'Kategori Yok';
+        const statusColor = tour.status === 'active' ? 'green' : tour.status === 'inactive' ? 'yellow' : 'red';
+        const statusText = tour.status === 'active' ? 'Aktif' : tour.status === 'inactive' ? 'Pasif' : 'Dolu';
 
         return `
-            <tr>
+            <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div>
-                        <div class="font-medium text-gray-900">${tour.title}</div>
-                        <div class="text-sm text-gray-500">${tour.duration_days} gün</div>
-                        ${hasImage ? `<div class="text-xs text-green-600">📸 ${imageCount} görsel</div>` : `<div class="text-xs text-gray-400">📷 Görsel yok</div>`}
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-lg bg-admin-light flex items-center justify-center">
+                                <span class="text-admin-primary text-sm font-semibold">🚌</span>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">${tour.title}</div>
+                            <div class="text-sm text-gray-500">${tour.duration_days} gün</div>
+                        </div>
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                        ${category ? category.name : 'Kategori yok'}
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${tour.formatted_price_try || '₺' + (tour.price_try || 0).toLocaleString('tr-TR')}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${tour.available_quota} / ${tour.quota}
+                    <span class="text-sm text-gray-900">${categoryName}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs rounded-full ${statusColors[tour.status]}">
-                        ${tour.status === 'active' ? 'Aktif' : tour.status === 'inactive' ? 'Pasif' : 'Dolu'}
+                    <span class="text-sm font-medium text-gray-900">
+                        ${tour.price_try ? new Intl.NumberFormat('tr-TR').format(tour.price_try) + ' ₺' : 'Belirtilmemiş'}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-sm text-gray-900">${tour.available_quota}/${tour.quota}</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${statusColor}-100 text-${statusColor}-800">
+                        ${statusText}
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex gap-2">
                         <button 
-                            onclick="imageUploader.showUploadModal(${tour.id}, '${tour.title.replace(/'/g, "\\'")}')"
-                            class="text-purple-600 hover:text-purple-900"
-                            title="Görsel Yükle"
-                        >
-                            📸
-                        </button>
-                        <button 
                             onclick="toursManager.editTour(${tour.id})"
-                            class="text-blue-600 hover:text-blue-900"
+                            class="text-blue-600 hover:text-blue-900 p-1"
                             title="Düzenle"
                         >
                             ✏️
                         </button>
                         <button 
                             onclick="toursManager.toggleTourStatus(${tour.id})"
-                            class="text-yellow-600 hover:text-yellow-900"
+                            class="text-yellow-600 hover:text-yellow-900 p-1"
                             title="${tour.status === 'active' ? 'Pasif Yap' : 'Aktif Yap'}"
                         >
                             ${tour.status === 'active' ? '⏸️' : '▶️'}
                         </button>
                         <button 
                             onclick="toursManager.deleteTour(${tour.id})"
-                            class="text-red-600 hover:text-red-900"
+                            class="text-red-600 hover:text-red-900 p-1"
                             title="Sil"
                         >
                             🗑️
+                        </button>
+                        <button 
+                            onclick="toursManager.showImageUpload(${tour.id})"
+                            class="text-green-600 hover:text-green-900 p-1"
+                            title="Resim Yükle"
+                        >
+                            📸
                         </button>
                     </div>
                 </td>
@@ -155,7 +196,7 @@ class ToursManager {
     renderTourModal() {
         return `
             <div id="tourModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-lg rounded-md bg-white max-h-[80vh] overflow-y-auto">
                     <div class="mt-3">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900" id="tourModalTitle">Yeni Tur Ekle</h3>
@@ -169,58 +210,94 @@ class ToursManager {
                         <form id="tourForm" class="space-y-4">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tur Adı</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tur Adı *</label>
                                     <input type="text" name="title" required 
-                                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                                 </div>
+                                
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kategori *</label>
                                     <select name="category_id" required 
-                                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent">
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                                         <option value="">Kategori Seçin</option>
-                                        ${this.categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('')}
+                                        ${this.categories.map(cat => `
+                                            <option value="${cat.id}">${cat.name}</option>
+                                        `).join('')}
                                     </select>
                                 </div>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Kısa Açıklama</label>
-                                <input type="text" name="short_description" 
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent"
-                                       placeholder="Örn: 15 günlük program, 3-4 kişilik odalar">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
+                                <textarea name="description" rows="3" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"></textarea>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Detaylı Açıklama</label>
-                                <textarea name="description" rows="3"
-                                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent"></textarea>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Kısa Açıklama</label>
+                                <input type="text" name="short_description" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Süre (Gün)</label>
-                                    <input type="number" name="duration_days" required min="1" max="365"
-                                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Süre (Gün) *</label>
+                                    <input type="number" name="duration_days" required min="1" max="365" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                                 </div>
+                                
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Fiyat (₺)</label>
-                                    <input type="number" name="price_try" required min="0" step="0.01"
-                                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent">
+                                    <input type="number" name="price_try" min="0" step="0.01" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                                 </div>
+                                
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Toplam Kota</label>
-                                    <input type="number" name="quota" required min="1"
-                                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kota *</label>
+                                    <input type="number" name="quota" required min="1" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                                 </div>
                             </div>
                             
-                            <div class="flex justify-end gap-3 pt-4">
-                                <button type="button" onclick="toursManager.closeTourModal()"
-                                        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Başlangıç Tarihi</label>
+                                    <input type="date" name="start_date" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Bitiş Tarihi</label>
+                                    <input type="date" name="end_date" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Otel Bilgileri</label>
+                                <textarea name="hotel_info" rows="2" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dahil Olan Hizmetler</label>
+                                <textarea name="included_services" rows="2" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dahil Olmayan Hizmetler</label>
+                                <textarea name="excluded_services" rows="2" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"></textarea>
+                            </div>
+                            
+                            <div class="flex justify-end gap-3 pt-4 border-t">
+                                <button type="button" onclick="toursManager.closeTourModal()" 
+                                        class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
                                     İptal
                                 </button>
-                                <button type="submit"
-                                        class="px-4 py-2 bg-admin-primary text-white rounded-lg hover:bg-admin-secondary transition-colors">
+                                <button type="submit" 
+                                        class="px-4 py-2 bg-admin-primary text-white rounded-md hover:bg-admin-secondary transition-colors">
                                     Kaydet
                                 </button>
                             </div>
@@ -234,27 +311,105 @@ class ToursManager {
     showAddTourModal() {
         this.editingTour = null;
         document.getElementById('tourModalTitle').textContent = 'Yeni Tur Ekle';
-        document.getElementById('tourForm').reset();
         document.getElementById('tourModal').classList.remove('hidden');
+        
+        // Form'u temizle
+        const form = document.getElementById('tourForm');
+        form.reset();
+        
+        // Form submit event'ini ekle
+        this.setupFormEventListener();
     }
 
-    editTour(tourId) {
+    async editTour(tourId) {
         const tour = this.tours.find(t => t.id === tourId);
         if (!tour) return;
 
         this.editingTour = tour;
         document.getElementById('tourModalTitle').textContent = 'Tur Düzenle';
-        
-        const form = document.getElementById('tourForm');
-        form.title.value = tour.title;
-        form.category_id.value = tour.category_id;
-        form.short_description.value = tour.short_description || '';
-        form.description.value = tour.description || '';
-        form.duration_days.value = tour.duration_days;
-        form.price_try.value = tour.price_try;
-        form.quota.value = tour.quota;
-        
         document.getElementById('tourModal').classList.remove('hidden');
+        
+        // Form'u doldur
+        const form = document.getElementById('tourForm');
+        form.elements.title.value = tour.title || '';
+        form.elements.category_id.value = tour.category_id || '';
+        form.elements.description.value = tour.description || '';
+        form.elements.short_description.value = tour.short_description || '';
+        form.elements.duration_days.value = tour.duration_days || '';
+        form.elements.price_try.value = tour.price_try || '';
+        form.elements.quota.value = tour.quota || '';
+        form.elements.start_date.value = tour.start_date || '';
+        form.elements.end_date.value = tour.end_date || '';
+        form.elements.hotel_info.value = tour.hotel_info || '';
+        form.elements.included_services.value = tour.included_services || '';
+        form.elements.excluded_services.value = tour.excluded_services || '';
+        
+        // Form submit event'ini ekle
+        this.setupFormEventListener();
+    }
+
+    setupFormEventListener() {
+        const form = document.getElementById('tourForm');
+        
+        // Önceki event listener'ları kaldır
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        
+        newForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.saveTour(newForm);
+        });
+    }
+
+    async saveTour(form) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        
+        try {
+            submitBtn.textContent = 'Kaydediliyor...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData(form);
+            const tourData = Object.fromEntries(formData.entries());
+            
+            // Boş değerleri null yap
+            Object.keys(tourData).forEach(key => {
+                if (tourData[key] === '') {
+                    tourData[key] = null;
+                }
+            });
+
+            const url = this.editingTour 
+                ? `/api/admin/tours/${this.editingTour.id}`
+                : '/api/admin/tours';
+            
+            const method = this.editingTour ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authManager.getAuthHeaders()
+                },
+                body: JSON.stringify(tourData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showSuccess(result.message);
+                this.loadTours();
+                this.closeTourModal();
+            } else {
+                this.showError(result.message);
+            }
+        } catch (error) {
+            console.error('Tour save error:', error);
+            this.showError('Bir hata oluştu. Lütfen tekrar deneyin.');
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
     }
 
     closeTourModal() {
@@ -263,32 +418,30 @@ class ToursManager {
     }
 
     async toggleTourStatus(tourId) {
-        const tour = this.tours.find(t => t.id === tourId);
-        if (!tour) return;
-
-        const newStatus = tour.status === 'active' ? 'inactive' : 'active';
-        
         try {
-            const response = await fetch(`/api/admin/tours/${tourId}/status`, {
-                method: 'PUT',
-                headers: authManager.getAuthHeaders(),
-                body: JSON.stringify({ status: newStatus })
+            const response = await fetch(`/api/admin/tours/${tourId}/toggle-status`, {
+                method: 'PATCH',
+                headers: authManager.getAuthHeaders()
             });
             
-            if (response.ok) {
-                tour.status = newStatus;
-                this.renderTours();
-                this.showSuccess(`Tur durumu ${newStatus === 'active' ? 'aktif' : 'pasif'} yapıldı`);
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showSuccess(result.message);
+                this.loadTours();
             } else {
-                throw new Error('API Error');
+                this.showError(result.message);
             }
         } catch (error) {
-            this.showError('Tur durumu güncellenirken hata oluştu');
+            console.error('Tour status toggle error:', error);
+            this.showError('Durum değiştirilemedi');
         }
     }
 
     async deleteTour(tourId) {
-        if (!confirm('Bu turu silmek istediğinizden emin misiniz?')) return;
+        if (!confirm('Bu turu silmek istediğinizden emin misiniz?')) {
+            return;
+        }
 
         try {
             const response = await fetch(`/api/admin/tours/${tourId}`, {
@@ -296,15 +449,25 @@ class ToursManager {
                 headers: authManager.getAuthHeaders()
             });
             
-            if (response.ok) {
-                this.tours = this.tours.filter(t => t.id !== tourId);
-                this.renderTours();
-                this.showSuccess('Tur silindi');
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showSuccess(result.message);
+                this.loadTours();
             } else {
-                throw new Error('API Error');
+                this.showError(result.message);
             }
         } catch (error) {
-            this.showError('Tur silinirken hata oluştu');
+            console.error('Tour delete error:', error);
+            this.showError('Tur silinemedi');
+        }
+    }
+
+    showImageUpload(tourId) {
+        if (window.imageUploader) {
+            imageUploader.showUploadModal(tourId);
+        } else {
+            this.showError('Resim yükleme özelliği henüz aktif değil');
         }
     }
 
@@ -317,16 +480,37 @@ class ToursManager {
     }
 
     showNotification(type, message) {
+        console.log(`📢 ${type.toUpperCase()}: ${message}`);
+        
         const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
             type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
         }`;
-        notification.textContent = message;
+        
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    ${type === 'success' 
+                        ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>'
+                        : '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>'
+                    }
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">${message}</p>
+                </div>
+            </div>
+        `;
+        
         document.body.appendChild(notification);
         
-        setTimeout(() => notification.remove(), 3000);
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
     }
 }
 
-// Global tours manager instance
-window.toursManager = new ToursManager();
+// Global instance oluştur
+if (typeof window !== 'undefined') {
+    window.toursManager = new ToursManager();
+    console.log('✅ Tours Manager hazır!');
+}

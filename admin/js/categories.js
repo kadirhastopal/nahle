@@ -1,4 +1,4 @@
-// admin/js/categories.js - Kategori yönetimi
+// admin/js/categories.js - Admin kategori yönetimi (DÜZELTİLMİŞ)
 class CategoriesManager {
     constructor() {
         this.categories = [];
@@ -7,23 +7,24 @@ class CategoriesManager {
 
     async loadCategories() {
         try {
-            console.log('📂 Kategoriler yükleniyor...');
+            console.log('📂 Admin kategoriler yükleniyor...');
             
-            const response = await fetch('/api/categories', {
+            const response = await fetch('/api/admin/categories?limit=50', {
                 headers: authManager.getAuthHeaders()
             });
 
             if (response.ok) {
                 const data = await response.json();
                 this.categories = data.data.categories;
-                console.log('✅ Kategoriler yüklendi:', this.categories.length);
+                
+                console.log('✅ Admin kategoriler yüklendi:', this.categories.length, 'kategori');
                 this.renderCategories();
             } else {
-                console.error('❌ Categories API hatası');
+                console.error('❌ Admin categories API hatası');
                 this.showError('Kategoriler yüklenirken hata oluştu');
             }
         } catch (error) {
-            console.error('❌ Categories yükleme hatası:', error);
+            console.error('❌ Admin categories yükleme hatası:', error);
             this.showError('Bağlantı hatası');
         }
     }
@@ -32,93 +33,105 @@ class CategoriesManager {
         const container = document.getElementById('categoriesContent');
         if (!container) return;
 
-        if (!this.categories || this.categories.length === 0) {
-            container.innerHTML = `
-                <div class="bg-white rounded-xl shadow-sm border p-6">
-                    <div class="text-center py-8">
-                        <div class="text-gray-400 mb-4">
-                            <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13V12a1 1 0 011-1z" clip-rule="evenodd"></path>
-                            </svg>
-                        </div>
-                        <p class="text-gray-500 mb-4">Henüz kategori bulunmuyor</p>
-                        <button 
-                            onclick="categoriesManager.showAddCategoryModal()"
-                            class="bg-admin-primary text-white px-4 py-2 rounded-lg hover:bg-admin-secondary transition-colors">
-                            + İlk Kategoriyi Ekle
-                        </button>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
         container.innerHTML = `
             <div class="bg-white rounded-xl shadow-sm border">
                 <div class="p-6 border-b border-gray-200">
-                    <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-gray-800">Kategori Yönetimi</h3>
                         <button 
                             onclick="categoriesManager.showAddCategoryModal()"
-                            class="bg-admin-primary text-white px-4 py-2 rounded-lg hover:bg-admin-secondary transition-colors">
+                            class="bg-admin-primary text-white px-4 py-2 rounded-lg hover:bg-admin-secondary transition-colors"
+                        >
                             + Yeni Kategori Ekle
                         </button>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                    ${this.categories.map(category => this.renderCategoryCard(category)).join('')}
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Açıklama</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tur Sayısı</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${this.categories.map(category => this.renderCategoryRow(category)).join('')}
+                        </tbody>
+                    </table>
                 </div>
+                
+                ${this.categories.length === 0 ? `
+                    <div class="text-center py-8">
+                        <p class="text-gray-500">Henüz kategori bulunmuyor.</p>
+                    </div>
+                ` : ''}
             </div>
             
             ${this.renderCategoryModal()}
         `;
     }
 
-    renderCategoryCard(category) {
-        const statusColor = category.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+    renderCategoryRow(category) {
+        const statusColor = category.status === 'active' ? 'green' : 'yellow';
         const statusText = category.status === 'active' ? 'Aktif' : 'Pasif';
+        const tourCount = category.Tours ? category.Tours.length : 0;
 
         return `
-            <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div class="flex justify-between items-start mb-3">
-                    <h4 class="text-lg font-semibold text-gray-800">${category.name}</h4>
-                    <span class="px-2 py-1 text-xs rounded-full ${statusColor}">
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-lg bg-admin-light flex items-center justify-center">
+                                <span class="text-admin-primary text-sm font-semibold">📂</span>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">${category.name}</div>
+                            <div class="text-sm text-gray-500">${category.slug}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <span class="text-sm text-gray-900">${category.description || 'Açıklama yok'}</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-sm text-gray-900">${tourCount} tur</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${statusColor}-100 text-${statusColor}-800">
                         ${statusText}
                     </span>
-                </div>
-                
-                <p class="text-sm text-gray-600 mb-3 line-clamp-2">
-                    ${category.description || 'Açıklama bulunmuyor'}
-                </p>
-                
-                <div class="text-xs text-gray-500 mb-4">
-                    <strong>Slug:</strong> ${category.slug}
-                </div>
-                
-                <div class="flex justify-between items-center">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex gap-2">
                         <button 
                             onclick="categoriesManager.editCategory(${category.id})"
-                            class="text-blue-600 hover:text-blue-900 text-sm"
-                            title="Düzenle">
-                            ✏️ Düzenle
+                            class="text-blue-600 hover:text-blue-900 p-1"
+                            title="Düzenle"
+                        >
+                            ✏️
                         </button>
                         <button 
                             onclick="categoriesManager.toggleCategoryStatus(${category.id})"
-                            class="text-yellow-600 hover:text-yellow-900 text-sm"
-                            title="${category.status === 'active' ? 'Pasif Yap' : 'Aktif Yap'}">
-                            ${category.status === 'active' ? '⏸️ Pasif Yap' : '▶️ Aktif Yap'}
+                            class="text-yellow-600 hover:text-yellow-900 p-1"
+                            title="${category.status === 'active' ? 'Pasif Yap' : 'Aktif Yap'}"
+                        >
+                            ${category.status === 'active' ? '⏸️' : '▶️'}
+                        </button>
+                        <button 
+                            onclick="categoriesManager.deleteCategory(${category.id})"
+                            class="text-red-600 hover:text-red-900 p-1"
+                            title="Sil"
+                        >
+                            🗑️
                         </button>
                     </div>
-                    <button 
-                        onclick="categoriesManager.deleteCategory(${category.id})"
-                        class="text-red-600 hover:text-red-900 text-sm"
-                        title="Sil">
-                        🗑️ Sil
-                    </button>
-                </div>
-            </div>
+                </td>
+            </tr>
         `;
     }
 
@@ -138,34 +151,31 @@ class CategoriesManager {
                         
                         <form id="categoryForm" class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Adı</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Adı *</label>
                                 <input type="text" name="name" required 
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent"
-                                       placeholder="Örn: Hac Turları">
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Slug (URL için)</label>
-                                <input type="text" name="slug" required 
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent"
-                                       placeholder="Örn: hac-turlari">
-                                <p class="text-xs text-gray-500 mt-1">Küçük harf ve tire kullanın</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+                                <input type="text" name="slug" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
+                                       placeholder="Otomatik oluşturulacak">
                             </div>
                             
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
-                                <textarea name="description" rows="3"
-                                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent"
-                                          placeholder="Kategori açıklaması..."></textarea>
+                                <textarea name="description" rows="3" 
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"></textarea>
                             </div>
                             
-                            <div class="flex justify-end gap-3 pt-4">
-                                <button type="button" onclick="categoriesManager.closeCategoryModal()"
-                                        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
+                            <div class="flex justify-end gap-3 pt-4 border-t">
+                                <button type="button" onclick="categoriesManager.closeCategoryModal()" 
+                                        class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
                                     İptal
                                 </button>
-                                <button type="submit"
-                                        class="px-4 py-2 bg-admin-primary text-white rounded-lg hover:bg-admin-secondary transition-colors">
+                                <button type="submit" 
+                                        class="px-4 py-2 bg-admin-primary text-white rounded-md hover:bg-admin-secondary transition-colors">
                                     Kaydet
                                 </button>
                             </div>
@@ -179,23 +189,128 @@ class CategoriesManager {
     showAddCategoryModal() {
         this.editingCategory = null;
         document.getElementById('categoryModalTitle').textContent = 'Yeni Kategori Ekle';
-        document.getElementById('categoryForm').reset();
         document.getElementById('categoryModal').classList.remove('hidden');
+        
+        // Form'u temizle
+        const form = document.getElementById('categoryForm');
+        form.reset();
+        
+        // Form submit event'ini ekle
+        this.setupFormEventListener();
+        
+        // Name input'una slug oluşturma event'i ekle
+        this.setupSlugGeneration();
     }
 
-    editCategory(categoryId) {
+    async editCategory(categoryId) {
         const category = this.categories.find(c => c.id === categoryId);
         if (!category) return;
 
         this.editingCategory = category;
         document.getElementById('categoryModalTitle').textContent = 'Kategori Düzenle';
-        
-        const form = document.getElementById('categoryForm');
-        form.name.value = category.name;
-        form.slug.value = category.slug;
-        form.description.value = category.description || '';
-        
         document.getElementById('categoryModal').classList.remove('hidden');
+        
+        // Form'u doldur
+        const form = document.getElementById('categoryForm');
+        form.elements.name.value = category.name || '';
+        form.elements.slug.value = category.slug || '';
+        form.elements.description.value = category.description || '';
+        
+        // Form submit event'ini ekle
+        this.setupFormEventListener();
+        
+        // Name input'una slug oluşturma event'i ekle
+        this.setupSlugGeneration();
+    }
+
+    setupSlugGeneration() {
+        const nameInput = document.querySelector('#categoryForm input[name="name"]');
+        const slugInput = document.querySelector('#categoryForm input[name="slug"]');
+        
+        if (nameInput && slugInput) {
+            nameInput.addEventListener('input', (e) => {
+                if (!this.editingCategory) {
+                    const slug = this.generateSlug(e.target.value);
+                    slugInput.value = slug;
+                }
+            });
+        }
+    }
+
+    generateSlug(text) {
+        return text
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
+    setupFormEventListener() {
+        const form = document.getElementById('categoryForm');
+        
+        // Önceki event listener'ları kaldır
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        
+        newForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.saveCategory(newForm);
+        });
+        
+        // Slug generation'ı yeniden kur
+        setTimeout(() => this.setupSlugGeneration(), 100);
+    }
+
+    async saveCategory(form) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        
+        try {
+            submitBtn.textContent = 'Kaydediliyor...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData(form);
+            const categoryData = Object.fromEntries(formData.entries());
+            
+            // Boş değerleri null yap
+            Object.keys(categoryData).forEach(key => {
+                if (categoryData[key] === '') {
+                    categoryData[key] = null;
+                }
+            });
+
+            const url = this.editingCategory 
+                ? `/api/admin/categories/${this.editingCategory.id}`
+                : '/api/admin/categories';
+            
+            const method = this.editingCategory ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authManager.getAuthHeaders()
+                },
+                body: JSON.stringify(categoryData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showSuccess(result.message);
+                this.loadCategories();
+                this.closeCategoryModal();
+            } else {
+                this.showError(result.message);
+            }
+        } catch (error) {
+            console.error('Category save error:', error);
+            this.showError('Bir hata oluştu. Lütfen tekrar deneyin.');
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
     }
 
     closeCategoryModal() {
@@ -204,32 +319,30 @@ class CategoriesManager {
     }
 
     async toggleCategoryStatus(categoryId) {
-        const category = this.categories.find(c => c.id === categoryId);
-        if (!category) return;
-
-        const newStatus = category.status === 'active' ? 'inactive' : 'active';
-        
         try {
-            const response = await fetch(`/api/admin/categories/${categoryId}/status`, {
-                method: 'PUT',
-                headers: authManager.getAuthHeaders(),
-                body: JSON.stringify({ status: newStatus })
+            const response = await fetch(`/api/admin/categories/${categoryId}/toggle-status`, {
+                method: 'PATCH',
+                headers: authManager.getAuthHeaders()
             });
             
-            if (response.ok) {
-                category.status = newStatus;
-                this.renderCategories();
-                this.showSuccess(`Kategori durumu ${newStatus === 'active' ? 'aktif' : 'pasif'} yapıldı`);
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showSuccess(result.message);
+                this.loadCategories();
             } else {
-                throw new Error('API Error');
+                this.showError(result.message);
             }
         } catch (error) {
-            this.showError('Kategori durumu güncellenirken hata oluştu');
+            console.error('Category status toggle error:', error);
+            this.showError('Durum değiştirilemedi');
         }
     }
 
     async deleteCategory(categoryId) {
-        if (!confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) return;
+        if (!confirm('Bu kategoriyi silmek istediğinizden emin misiniz? Bu kategoriye bağlı turlar etkilenebilir.')) {
+            return;
+        }
 
         try {
             const response = await fetch(`/api/admin/categories/${categoryId}`, {
@@ -237,15 +350,17 @@ class CategoriesManager {
                 headers: authManager.getAuthHeaders()
             });
             
-            if (response.ok) {
-                this.categories = this.categories.filter(c => c.id !== categoryId);
-                this.renderCategories();
-                this.showSuccess('Kategori silindi');
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showSuccess(result.message);
+                this.loadCategories();
             } else {
-                throw new Error('API Error');
+                this.showError(result.message);
             }
         } catch (error) {
-            this.showError('Kategori silinirken hata oluştu');
+            console.error('Category delete error:', error);
+            this.showError('Kategori silinemedi');
         }
     }
 
@@ -258,16 +373,37 @@ class CategoriesManager {
     }
 
     showNotification(type, message) {
+        console.log(`📢 ${type.toUpperCase()}: ${message}`);
+        
         const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
             type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
         }`;
-        notification.textContent = message;
+        
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    ${type === 'success' 
+                        ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>'
+                        : '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>'
+                    }
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">${message}</p>
+                </div>
+            </div>
+        `;
+        
         document.body.appendChild(notification);
         
-        setTimeout(() => notification.remove(), 3000);
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
     }
 }
 
-// Global categories manager instance
-window.categoriesManager = new CategoriesManager();
+// Global instance oluştur
+if (typeof window !== 'undefined') {
+    window.categoriesManager = new CategoriesManager();
+    console.log('✅ Categories Manager hazır!');
+}

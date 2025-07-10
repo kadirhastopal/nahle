@@ -1,4 +1,4 @@
-// models/AdminUser.js
+// models/AdminUser.js - DÜZELTİLMİŞ
 const { DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const { sequelize } = require('../config/database');
@@ -15,8 +15,7 @@ const AdminUser = sequelize.define('AdminUser', {
         allowNull: false,
         validate: {
             notEmpty: true,
-            len: [3, 50],
-            isAlphanumeric: true
+            len: [3, 50]
         }
     },
     email: {
@@ -41,7 +40,7 @@ const AdminUser = sequelize.define('AdminUser', {
     },
     role: {
         type: DataTypes.ENUM('super_admin', 'admin', 'editor'),
-        defaultValue: 'editor'
+        defaultValue: 'super_admin'
     },
     status: {
         type: DataTypes.ENUM('active', 'inactive'),
@@ -72,11 +71,13 @@ const AdminUser = sequelize.define('AdminUser', {
     hooks: {
         beforeCreate: async (user) => {
             if (user.password_hash && !user.password_hash.startsWith('$2b$')) {
+                console.log('🔐 Hashing password on create');
                 user.password_hash = await bcrypt.hash(user.password_hash, 12);
             }
         },
         beforeUpdate: async (user) => {
             if (user.changed('password_hash') && !user.password_hash.startsWith('$2b$')) {
+                console.log('🔐 Hashing password on update');
                 user.password_hash = await bcrypt.hash(user.password_hash, 12);
             }
         }
@@ -106,7 +107,14 @@ AdminUser.prototype.toJSON = function() {
 };
 
 AdminUser.prototype.comparePassword = async function(password) {
-    return bcrypt.compare(password, this.password_hash);
+    try {
+        const result = await bcrypt.compare(password, this.password_hash);
+        console.log('🔐 Password comparison result:', result);
+        return result;
+    } catch (error) {
+        console.error('❌ Password comparison error:', error);
+        return false;
+    }
 };
 
 AdminUser.prototype.updateLastLogin = async function() {
@@ -118,7 +126,7 @@ AdminUser.prototype.updateLastLogin = async function() {
 AdminUser.findByUsername = function(username) {
     return this.findOne({
         where: { 
-            username: username.toLowerCase(),
+            username: username,
             status: 'active'
         }
     });
@@ -127,7 +135,7 @@ AdminUser.findByUsername = function(username) {
 AdminUser.findByEmail = function(email) {
     return this.findOne({
         where: { 
-            email: email.toLowerCase(),
+            email: email,
             status: 'active'
         }
     });
@@ -142,30 +150,43 @@ AdminUser.findActive = function(options = {}) {
 };
 
 AdminUser.authenticate = async function(login, password) {
-    const { Op } = require('sequelize');
-    
-    // Email veya username ile giriş
-    const user = await this.findOne({
-        where: {
-            [Op.or]: [
-                { email: login.toLowerCase() },
-                { username: login.toLowerCase() }
-            ],
-            status: 'active'
+    try {
+        console.log('🔍 Authenticating user:', login);
+        
+        const { Op } = require('sequelize');
+        
+        // Email veya username ile giriş
+        const user = await this.findOne({
+            where: {
+                [Op.or]: [
+                    { email: login },
+                    { username: login }
+                ],
+                status: 'active'
+            }
+        });
+        
+        if (!user) {
+            console.log('❌ User not found:', login);
+            return null;
         }
-    });
-    
-    if (!user) {
+        
+        console.log('✅ User found:', user.username);
+        
+        const isValid = await user.comparePassword(password);
+        if (!isValid) {
+            console.log('❌ Invalid password for user:', user.username);
+            return null;
+        }
+        
+        console.log('✅ Authentication successful for:', user.username);
+        await user.updateLastLogin();
+        return user;
+        
+    } catch (error) {
+        console.error('❌ Authentication error:', error);
         return null;
     }
-    
-    const isValid = await user.comparePassword(password);
-    if (!isValid) {
-        return null;
-    }
-    
-    await user.updateLastLogin();
-    return user;
 };
 
 module.exports = AdminUser;
