@@ -6,7 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "migrate:tours": "node scripts/migrate-tours.js",
+    "db:setup": "node scripts/migrate-tours.js",
+    "db:reset": "echo 'Database reset script will be here'"
   },
   "keywords": [
     "hac",
