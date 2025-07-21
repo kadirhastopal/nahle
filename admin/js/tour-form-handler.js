@@ -3,7 +3,15 @@ class TourFormHandler {
     static init() {
         console.log('🔧 Tour Form Handler başlatıldı');
         document.addEventListener('DOMContentLoaded', () => {
-            TourFormHandler.bindFormEvents();
+            // ToursManager hazır olana kadar bekle
+            const checkTourManager = () => {
+                if (window.toursManager) {
+                    TourFormHandler.bindFormEvents();
+                } else {
+                    setTimeout(checkTourManager, 100);
+                }
+            };
+            checkTourManager();
         });
     }
 

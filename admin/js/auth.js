@@ -1,4 +1,4 @@
-// admin/js/auth.js - DÜZELTİLMİŞ
+// admin/js/auth.js - DÜZELTİLMİŞ VERSİYON
 class AuthManager {
     constructor() {
         this.token = localStorage.getItem('authToken');
@@ -10,9 +10,10 @@ class AuthManager {
         }
     }
 
-    async login(username, password) {
+    // ✅ DÜZELTME: Login metodu parametrelerini düzelt
+    async login(credentials) {
         try {
-            console.log('🔐 Login attempt:', username);
+            console.log('🔐 Login attempt:', credentials.login || credentials.username);
             
             const response = await fetch('/api/admin/login', {
                 method: 'POST',
@@ -20,8 +21,8 @@ class AuthManager {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    login: username,     // ✅ DÜZELTME: 'login' field kullan
-                    password: password
+                    login: credentials.login || credentials.username,
+                    password: credentials.password
                 })
             });
 
@@ -34,15 +35,14 @@ class AuthManager {
                 localStorage.setItem('authToken', this.token);
                 
                 console.log('✅ Login successful:', this.user.username);
-                return true;
+                return { success: true, user: this.user };
             } else {
                 console.error('❌ Login failed:', data.message);
-                throw new Error(data.message);
+                return { success: false, message: data.message };
             }
         } catch (error) {
             console.error('❌ Login error:', error);
-            this.showError(error.message || 'Giriş hatası');
-            return false;
+            return { success: false, message: error.message || 'Giriş hatası' };
         }
     }
 
@@ -81,6 +81,11 @@ class AuthManager {
         this.token = null;
         this.user = null;
         localStorage.removeItem('authToken');
+        
+        // Sayfayı yenile
+        if (typeof window !== 'undefined') {
+            window.location.reload();
+        }
     }
 
     isAuthenticated() {
@@ -88,46 +93,32 @@ class AuthManager {
     }
 
     getAuthHeaders() {
-        if (!this.token) {
-            console.warn('⚠️ No auth token available');
-            return {
-                'Content-Type': 'application/json'
-            };
-        }
-        
         return {
             'Authorization': `Bearer ${this.token}`,
             'Content-Type': 'application/json'
         };
     }
 
+    getUser() {
+        return this.user;
+    }
+
     showError(message) {
-        console.error('🚨 Auth Error:', message);
+        console.error('Auth Error:', message);
         
-        // Show error in UI if available
+        // Login error div'ini bul ve göster
         const errorDiv = document.getElementById('loginError');
         if (errorDiv) {
             errorDiv.textContent = message;
             errorDiv.classList.remove('hidden');
         }
-    }
-
-    // Test admin user creation (for debugging)
-    async testConnection() {
-        try {
-            const response = await fetch('/api/health');
-            const data = await response.json();
-            console.log('🏥 Health check:', data);
-            return data.status === 'OK';
-        } catch (error) {
-            console.error('❌ Health check failed:', error);
-            return false;
+        
+        // Toast notification sistemi varsa kullan
+        if (typeof window.showNotification === 'function') {
+            window.showNotification('error', message);
         }
     }
 }
 
-// Global auth instance
-if (typeof window !== 'undefined') {
-    window.authManager = new AuthManager();
-    console.log('✅ Auth Manager initialized');
-}
+// Global instance oluştur
+const authManager = new AuthManager();

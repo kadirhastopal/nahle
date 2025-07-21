@@ -1,8 +1,9 @@
-// routes/api/admin.js
+// routes/api/admin.js - TAM ADMIN API DOSYASI
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const { AdminUser, Tour, Category, ContactMessage } = require('../../models');
+const { Op } = require('sequelize');
 const router = express.Router();
 
 // Validation middleware
@@ -50,6 +51,8 @@ const authMiddleware = async (req, res, next) => {
         });
     }
 };
+
+// ==================== AUTH ENDPOINTS ====================
 
 // POST /api/admin/login - Admin girişi
 router.post('/login', [
@@ -108,25 +111,33 @@ router.get('/profile', authMiddleware, (req, res) => {
     });
 });
 
+// routes/api/admin.js - Dashboard endpoint düzeltmesi
+
 // GET /api/admin/dashboard - Dashboard istatistikleri
 router.get('/dashboard', authMiddleware, async (req, res) => {
     try {
+        console.log('📊 Dashboard verileri istendi');
+        
         // Genel istatistikler
         const totalTours = await Tour.count({ where: { status: 'active' } });
         const totalCategories = await Category.count({ where: { status: 'active' } });
         const newMessages = await ContactMessage.count({ where: { status: 'new' } });
         const totalMessages = await ContactMessage.count();
         
-        // Son turlar
+        console.log('📊 İstatistikler:', { totalTours, totalCategories, newMessages, totalMessages });
+        
+        // Son turlar - ✅ DÜZELTME: association ismini düzelt
         const recentTours = await Tour.findAll({
             limit: 5,
             order: [['created_at', 'DESC']],
             include: [{
                 model: Category,
-                as: 'Category',
-                attributes: ['name']
+                attributes: ['name'],
+                required: false // ✅ DÜZELTME: Left join yap
             }]
         });
+        
+        console.log('📊 Son turlar:', recentTours.length);
         
         // Son mesajlar
         const recentMessages = await ContactMessage.findAll({
@@ -134,6 +145,8 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
             order: [['created_at', 'DESC']],
             where: { status: 'new' }
         });
+        
+        console.log('📊 Son mesajlar:', recentMessages.length);
         
         res.json({
             success: true,
@@ -150,91 +163,13 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Dashboard stats error:', error);
+        console.error('❌ Dashboard stats error:', error);
         res.status(500).json({
             success: false,
-            message: 'Dashboard verileri alınırken hata oluştu'
+            message: 'Dashboard verileri alınırken hata oluştu: ' + error.message
         });
     }
 });
-
-// GET /api/admin/messages - İletişim mesajları
-router.get('/messages', authMiddleware, async (req, res) => {
-    try {
-        const { status, page = 1, limit = 20 } = req.query;
-        const offset = (page - 1) * limit;
-        
-        const whereClause = status ? { status } : {};
-        
-        const { count, rows } = await ContactMessage.findAndCountAll({
-            where: whereClause,
-            limit: parseInt(limit),
-            offset: parseInt(offset),
-            order: [['created_at', 'DESC']]
-        });
-        
-        res.json({
-            success: true,
-            data: {
-                messages: rows,
-                pagination: {
-                    total: count,
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    pages: Math.ceil(count / limit)
-                }
-            }
-        });
-        
-    } catch (error) {
-        console.error('Admin messages error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Mesajlar alınırken hata oluştu'
-        });
-    }
-});
-
-// PUT /api/admin/messages/:id/status - Mesaj durumu güncelle
-router.put('/messages/:id/status', [
-    authMiddleware,
-    body('status')
-        .isIn(['new', 'read', 'replied', 'archived'])
-        .withMessage('Geçerli bir durum seçiniz'),
-    handleValidationErrors
-], async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-        
-        const message = await ContactMessage.findByPk(id);
-        
-        if (!message) {
-            return res.status(404).json({
-                success: false,
-                message: 'Mesaj bulunamadı'
-            });
-        }
-        
-        message.status = status;
-        await message.save();
-        
-        res.json({
-            success: true,
-            message: 'Mesaj durumu güncellendi',
-            data: { message }
-        });
-        
-    } catch (error) {
-        console.error('Message status update error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Mesaj durumu güncellenirken hata oluştu'
-        });
-    }
-});
-
-module.exports = router;
 
 // ==================== TOURS MANAGEMENT ====================
 
@@ -245,19 +180,22 @@ router.get('/tours', authMiddleware, async (req, res) => {
         const offset = (page - 1) * limit;
         
         const whereClause = {};
-        if (status) whereClause.status = status;
+        if (status && status !== 'all') whereClause.status = status;
         if (category_id) whereClause.category_id = category_id;
         
         const { count, rows } = await Tour.findAndCountAll({
             where: whereClause,
             include: [{
                 model: Category,
-                as: 'Category',
                 attributes: ['id', 'name', 'slug']
             }],
             limit: parseInt(limit),
             offset: parseInt(offset),
-            order: [['created_at', 'DESC']]
+            order: [
+                ['featured', 'DESC'],
+                ['priority', 'DESC'],
+                ['created_at', 'DESC']
+            ]
         });
         
         res.json({
@@ -283,137 +221,70 @@ router.get('/tours', authMiddleware, async (req, res) => {
 });
 
 // POST /api/admin/tours - Yeni tur ekle
-router.post('/tours', [
-    authMiddleware,
-    body('title')
-        .trim()
-        .isLength({ min: 3, max: 200 })
-        .withMessage('Başlık 3-200 karakter arasında olmalıdır'),
-    body('category_id')
-        .isInt({ min: 1 })
-        .withMessage('Geçerli bir kategori seçiniz'),
-    body('duration_days')
-        .isInt({ min: 1, max: 365 })
-        .withMessage('Süre 1-365 gün arasında olmalıdır'),
-    body('price_try')
-        .isFloat({ min: 0 })
-        .withMessage('Geçerli bir fiyat giriniz'),
-    body('quota')
-        .isInt({ min: 1 })
-        .withMessage('Kota en az 1 olmalıdır'),
-    handleValidationErrors
-], async (req, res) => {
+router.post('/tours', authMiddleware, async (req, res) => {
     try {
-        const { 
-            title, 
-            category_id, 
-            short_description, 
-            description, 
-            duration_days, 
-            price_try, 
-            quota 
-        } = req.body;
+        console.log('🚌 Yeni tur oluşturuluyor:', req.body);
         
-        // Slug oluştur
-        const slug = title
-            .toLowerCase()
-            .replace(/ş/g, 's')
-            .replace(/ğ/g, 'g')
-            .replace(/ü/g, 'u')
-            .replace(/ö/g, 'o')
-            .replace(/ı/g, 'i')
-            .replace(/ç/g, 'c')
-            .replace(/[^a-z0-9\s]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .trim('-');
-        
-        // Slug benzersizliğini kontrol et
-        let finalSlug = slug;
-        let counter = 1;
-        while (await Tour.findOne({ where: { slug: finalSlug } })) {
-            finalSlug = `${slug}-${counter}`;
-            counter++;
-        }
-        
-        const newTour = await Tour.create({
+        const {
             title,
-            slug: finalSlug,
             category_id,
-            short_description,
             description,
+            short_description,
             duration_days,
+            duration_nights,
+            mekke_nights,
+            medine_nights,
             price_try,
             quota,
-            available_quota: quota, // Başlangıçta tüm kota müsait
-            status: 'active'
-        });
-        
-        // İlişkili verileri de getir
-        const createdTour = await Tour.findByPk(newTour.id, {
-            include: [{
-                model: Category,
-                as: 'Category',
-                attributes: ['id', 'name', 'slug']
-            }]
-        });
-        
-        res.status(201).json({
-            success: true,
-            message: 'Tur başarıyla eklendi',
-            data: { tour: createdTour }
-        });
-        
-    } catch (error) {
-        console.error('Tour creation error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Tur eklenirken hata oluştu'
-        });
-    }
-});
+            start_date,
+            end_date,
+            departure_info,
+            return_info,
+            responsible_contacts,
+            mekke_hotel,
+            medine_hotel,
+            extra_features,
+            required_documents,
+            important_notes,
+            cancellation_policy,
+            payment_terms,
+            visit_places,
+            included_services,
+            excluded_services,
+            featured = false,
+            priority = 0,
+            status = 'active',
+            slug,
+            seo_keywords,
+            meta_description
+        } = req.body;
 
-// PUT /api/admin/tours/:id - Tur güncelle
-router.put('/tours/:id', [
-    authMiddleware,
-    body('title')
-        .optional()
-        .trim()
-        .isLength({ min: 3, max: 200 })
-        .withMessage('Başlık 3-200 karakter arasında olmalıdır'),
-    body('category_id')
-        .optional()
-        .isInt({ min: 1 })
-        .withMessage('Geçerli bir kategori seçiniz'),
-    body('duration_days')
-        .optional()
-        .isInt({ min: 1, max: 365 })
-        .withMessage('Süre 1-365 gün arasında olmalıdır'),
-    body('price_try')
-        .optional()
-        .isFloat({ min: 0 })
-        .withMessage('Geçerli bir fiyat giriniz'),
-    body('quota')
-        .optional()
-        .isInt({ min: 1 })
-        .withMessage('Kota en az 1 olmalıdır'),
-    handleValidationErrors
-], async (req, res) => {
-    try {
-        const { id } = req.params;
-        const updateData = req.body;
-        
-        const tour = await Tour.findByPk(id);
-        if (!tour) {
-            return res.status(404).json({
+        // Temel validasyon
+        if (!title || !title.trim()) {
+            return res.status(400).json({
                 success: false,
-                message: 'Tur bulunamadı'
+                message: 'Doğrulama hatası: Başlık zorunludur'
             });
         }
-        
-        // Başlık değişirse slug'ı da güncelle
-        if (updateData.title && updateData.title !== tour.title) {
-            const newSlug = updateData.title
+
+        if (!duration_days || duration_days < 1) {
+            return res.status(400).json({
+                success: false,
+                message: 'Doğrulama hatası: Geçerli bir gün sayısı giriniz'
+            });
+        }
+
+        if (!price_try || price_try < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Doğrulama hatası: Geçerli bir fiyat giriniz'
+            });
+        }
+
+        // Slug oluştur
+        let tourSlug = slug;
+        if (!tourSlug && title) {
+            tourSlug = title
                 .toLowerCase()
                 .replace(/ş/g, 's')
                 .replace(/ğ/g, 'g')
@@ -421,86 +292,237 @@ router.put('/tours/:id', [
                 .replace(/ö/g, 'o')
                 .replace(/ı/g, 'i')
                 .replace(/ç/g, 'c')
-                .replace(/[^a-z0-9\s]/g, '')
+                .replace(/[^a-z0-9\s-]/g, '')
                 .replace(/\s+/g, '-')
                 .replace(/-+/g, '-')
                 .trim('-');
-            
-            // Slug benzersizliğini kontrol et
-            let finalSlug = newSlug;
-            let counter = 1;
-            while (await Tour.findOne({ 
-                where: { 
-                    slug: finalSlug,
-                    id: { [require('sequelize').Op.ne]: id }
-                } 
-            })) {
-                finalSlug = `${newSlug}-${counter}`;
-                counter++;
-            }
-            
-            updateData.slug = finalSlug;
         }
-        
-        await tour.update(updateData);
-        
-        // Güncellenmiş turu ilişkili verilerle getir
-        const updatedTour = await Tour.findByPk(id, {
+
+        // Slug benzersizlik kontrolü
+        if (tourSlug) {
+            const existingTour = await Tour.findOne({ where: { slug: tourSlug } });
+            if (existingTour) {
+                tourSlug = `${tourSlug}-${Date.now()}`;
+            }
+        }
+
+        // Yeni tur oluştur
+        const tour = await Tour.create({
+            title: title.trim(),
+            slug: tourSlug,
+            category_id: category_id || null,
+            description: description?.trim() || null,
+            short_description: short_description?.trim() || null,
+            duration_days: parseInt(duration_days) || null,
+            duration_nights: parseInt(duration_nights) || null,
+            mekke_nights: parseInt(mekke_nights) || null,
+            medine_nights: parseInt(medine_nights) || null,
+            price_try: parseFloat(price_try) || null,
+            quota: parseInt(quota) || null,
+            start_date: start_date || null,
+            end_date: end_date || null,
+            departure_info: departure_info || null,
+            return_info: return_info || null,
+            responsible_contacts: responsible_contacts || null,
+            mekke_hotel: mekke_hotel || null,
+            medine_hotel: medine_hotel || null,
+            extra_features: extra_features?.trim() || null,
+            required_documents: required_documents?.trim() || null,
+            important_notes: important_notes?.trim() || null,
+            cancellation_policy: cancellation_policy?.trim() || null,
+            payment_terms: payment_terms?.trim() || null,
+            visit_places: visit_places?.trim() || null,
+            included_services: included_services?.trim() || null,
+            excluded_services: excluded_services?.trim() || null,
+            featured: featured === true || featured === 'true' || featured === '1',
+            priority: parseInt(priority) || 0,
+            status: status || 'active',
+            seo_keywords: seo_keywords?.trim() || null,
+            meta_description: meta_description?.trim() || null
+        });
+
+        console.log('✅ Tur başarıyla oluşturuldu:', tour.id);
+
+        // Kategori bilgisiyle birlikte döndür
+        const tourWithCategory = await Tour.findOne({
+            where: { id: tour.id },
             include: [{
                 model: Category,
-                as: 'Category',
                 attributes: ['id', 'name', 'slug']
             }]
         });
-        
-        res.json({
+
+        res.status(201).json({
             success: true,
-            message: 'Tur başarıyla güncellendi',
-            data: { tour: updatedTour }
+            message: 'Tur başarıyla oluşturuldu',
+            data: { tour: tourWithCategory }
         });
-        
+
     } catch (error) {
-        console.error('Tour update error:', error);
+        console.error('❌ Tour create error:', error);
+        
+        // Sequelize validation hatalarını yakala
+        if (error.name === 'SequelizeValidationError') {
+            const validationErrors = error.errors.map(err => err.message);
+            return res.status(400).json({
+                success: false,
+                message: 'Doğrulama hatası: ' + validationErrors.join(', ')
+            });
+        }
+
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({
+                success: false,
+                message: 'Bu başlık veya slug zaten kullanılıyor'
+            });
+        }
+
         res.status(500).json({
             success: false,
-            message: 'Tur güncellenirken hata oluştu'
+            message: 'Tur oluşturulurken hata oluştu: ' + error.message
         });
     }
 });
 
-// PUT /api/admin/tours/:id/status - Tur durumu değiştir
-router.put('/tours/:id/status', [
-    authMiddleware,
-    body('status')
-        .isIn(['active', 'inactive', 'full', 'completed'])
-        .withMessage('Geçerli bir durum seçiniz'),
-    handleValidationErrors
-], async (req, res) => {
+// PUT /api/admin/tours/:id - Tur güncelle  
+router.put('/tours/:id', authMiddleware, async (req, res) => {
     try {
-        const { id } = req.params;
-        const { status } = req.body;
+        const tour = await Tour.findByPk(req.params.id);
         
-        const tour = await Tour.findByPk(id);
         if (!tour) {
             return res.status(404).json({
                 success: false,
                 message: 'Tur bulunamadı'
             });
         }
+
+        const {
+            title,
+            category_id,
+            description,
+            short_description,
+            duration_days,
+            duration_nights,
+            mekke_nights,
+            medine_nights,
+            price_try,
+            quota,
+            start_date,
+            end_date,
+            departure_info,
+            return_info,
+            responsible_contacts,
+            mekke_hotel,
+            medine_hotel,
+            extra_features,
+            required_documents,
+            important_notes,
+            cancellation_policy,
+            payment_terms,
+            visit_places,
+            included_services,
+            excluded_services,
+            featured,
+            priority,
+            status,
+            slug,
+            seo_keywords,
+            meta_description
+        } = req.body;
+
+        // Slug güncelleme kontrolü
+        let tourSlug = slug || tour.slug;
+        if (title && title !== tour.title && !slug) {
+            tourSlug = title
+                .toLowerCase()
+                .replace(/ş/g, 's')
+                .replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u')
+                .replace(/ö/g, 'o')
+                .replace(/ı/g, 'i')
+                .replace(/ç/g, 'c')
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim('-');
+        }
         
-        await tour.update({ status });
-        
+        if (tourSlug && tourSlug !== tour.slug) {
+            const existingTour = await Tour.findOne({ 
+                where: { 
+                    slug: tourSlug,
+                    id: { [Op.ne]: tour.id }
+                }
+            });
+            if (existingTour) {
+                tourSlug = `${tourSlug}-${Date.now()}`;
+            }
+        }
+
+        // Tur bilgilerini güncelle
+        await tour.update({
+            title: title !== undefined ? title?.trim() : tour.title,
+            slug: tourSlug,
+            category_id: category_id !== undefined ? (category_id || null) : tour.category_id,
+            description: description !== undefined ? (description?.trim() || null) : tour.description,
+            short_description: short_description !== undefined ? (short_description?.trim() || null) : tour.short_description,
+            duration_days: duration_days !== undefined ? (parseInt(duration_days) || null) : tour.duration_days,
+            duration_nights: duration_nights !== undefined ? (parseInt(duration_nights) || null) : tour.duration_nights,
+            mekke_nights: mekke_nights !== undefined ? (parseInt(mekke_nights) || null) : tour.mekke_nights,
+            medine_nights: medine_nights !== undefined ? (parseInt(medine_nights) || null) : tour.medine_nights,
+            price_try: price_try !== undefined ? (parseFloat(price_try) || null) : tour.price_try,
+            quota: quota !== undefined ? (parseInt(quota) || null) : tour.quota,
+            start_date: start_date !== undefined ? start_date : tour.start_date,
+            end_date: end_date !== undefined ? end_date : tour.end_date,
+            departure_info: departure_info !== undefined ? departure_info : tour.departure_info,
+            return_info: return_info !== undefined ? return_info : tour.return_info,
+            responsible_contacts: responsible_contacts !== undefined ? responsible_contacts : tour.responsible_contacts,
+            mekke_hotel: mekke_hotel !== undefined ? mekke_hotel : tour.mekke_hotel,
+            medine_hotel: medine_hotel !== undefined ? medine_hotel : tour.medine_hotel,
+            extra_features: extra_features !== undefined ? (extra_features?.trim() || null) : tour.extra_features,
+            required_documents: required_documents !== undefined ? (required_documents?.trim() || null) : tour.required_documents,
+            important_notes: important_notes !== undefined ? (important_notes?.trim() || null) : tour.important_notes,
+            cancellation_policy: cancellation_policy !== undefined ? (cancellation_policy?.trim() || null) : tour.cancellation_policy,
+            payment_terms: payment_terms !== undefined ? (payment_terms?.trim() || null) : tour.payment_terms,
+            visit_places: visit_places !== undefined ? (visit_places?.trim() || null) : tour.visit_places,
+            included_services: included_services !== undefined ? (included_services?.trim() || null) : tour.included_services,
+            excluded_services: excluded_services !== undefined ? (excluded_services?.trim() || null) : tour.excluded_services,
+            featured: featured !== undefined ? (featured === true || featured === 'true' || featured === '1') : tour.featured,
+            priority: priority !== undefined ? (parseInt(priority) || 0) : tour.priority,
+            status: status !== undefined ? status : tour.status,
+            seo_keywords: seo_keywords !== undefined ? (seo_keywords?.trim() || null) : tour.seo_keywords,
+            meta_description: meta_description !== undefined ? (meta_description?.trim() || null) : tour.meta_description
+        });
+
+        // Güncellenmiş tur bilgilerini kategori ile birlikte getir
+        const updatedTour = await Tour.findOne({
+            where: { id: tour.id },
+            include: [{
+                model: Category,
+                attributes: ['id', 'name', 'slug']
+            }]
+        });
+
         res.json({
             success: true,
-            message: `Tur durumu ${status === 'active' ? 'aktif' : 'pasif'} yapıldı`,
-            data: { tour }
+            message: 'Tur başarıyla güncellendi',
+            data: { tour: updatedTour }
         });
-        
+
     } catch (error) {
-        console.error('Tour status update error:', error);
+        console.error('❌ Tour update error:', error);
+        
+        if (error.name === 'SequelizeValidationError') {
+            const validationErrors = error.errors.map(err => err.message);
+            return res.status(400).json({
+                success: false,
+                message: 'Doğrulama hatası: ' + validationErrors.join(', ')
+            });
+        }
+
         res.status(500).json({
             success: false,
-            message: 'Tur durumu güncellenirken hata oluştu'
+            message: 'Tur güncellenirken hata oluştu: ' + error.message
         });
     }
 });
@@ -508,28 +530,27 @@ router.put('/tours/:id/status', [
 // DELETE /api/admin/tours/:id - Tur sil
 router.delete('/tours/:id', authMiddleware, async (req, res) => {
     try {
-        const { id } = req.params;
+        const tour = await Tour.findByPk(req.params.id);
         
-        const tour = await Tour.findByPk(id);
         if (!tour) {
             return res.status(404).json({
                 success: false,
                 message: 'Tur bulunamadı'
             });
         }
-        
+
         await tour.destroy();
-        
+
         res.json({
             success: true,
             message: 'Tur başarıyla silindi'
         });
-        
+
     } catch (error) {
-        console.error('Tour delete error:', error);
+        console.error('❌ Tour delete error:', error);
         res.status(500).json({
             success: false,
-            message: 'Tur silinirken hata oluştu'
+            message: 'Tur silinirken hata oluştu: ' + error.message
         });
     }
 });
@@ -581,40 +602,50 @@ router.post('/categories', [
         .trim()
         .isLength({ min: 2, max: 100 })
         .withMessage('Kategori adı 2-100 karakter arasında olmalıdır'),
-    body('slug')
-        .trim()
-        .isLength({ min: 2, max: 100 })
-        .matches(/^[a-z0-9-]+$/)
-        .withMessage('Slug sadece küçük harf, rakam ve tire içerebilir'),
     body('description')
         .optional()
+        .trim()
         .isLength({ max: 500 })
         .withMessage('Açıklama maksimum 500 karakter olabilir'),
     handleValidationErrors
 ], async (req, res) => {
     try {
-        const { name, slug, description } = req.body;
+        const { name, description, status = 'active' } = req.body;
         
-        // Slug benzersizliğini kontrol et
+        // Slug oluştur
+        const slug = name
+            .toLowerCase()
+            .replace(/ş/g, 's')
+            .replace(/ğ/g, 'g')
+            .replace(/ü/g, 'u')
+            .replace(/ö/g, 'o')
+            .replace(/ı/g, 'i')
+            .replace(/ç/g, 'c')
+            .replace(/[^a-z0-9\s]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim('-');
+        
+        // Slug benzersizlik kontrolü
         const existingCategory = await Category.findOne({ where: { slug } });
         if (existingCategory) {
             return res.status(400).json({
                 success: false,
-                message: 'Bu slug zaten kullanılıyor'
+                message: 'Bu kategori adı zaten kullanılıyor'
             });
         }
         
-        const newCategory = await Category.create({
-            name,
+        const category = await Category.create({
+            name: name.trim(),
             slug,
-            description,
-            status: 'active'
+            description: description?.trim() || null,
+            status
         });
         
         res.status(201).json({
             success: true,
-            message: 'Kategori başarıyla eklendi',
-            data: { category: newCategory }
+            message: 'Kategori başarıyla oluşturuldu',
+            data: { category }
         });
         
     } catch (error) {
@@ -634,14 +665,9 @@ router.put('/categories/:id', [
         .trim()
         .isLength({ min: 2, max: 100 })
         .withMessage('Kategori adı 2-100 karakter arasında olmalıdır'),
-    body('slug')
-        .optional()
-        .trim()
-        .isLength({ min: 2, max: 100 })
-        .matches(/^[a-z0-9-]+$/)
-        .withMessage('Slug sadece küçük harf, rakam ve tire içerebilir'),
     body('description')
         .optional()
+        .trim()
         .isLength({ max: 500 })
         .withMessage('Açıklama maksimum 500 karakter olabilir'),
     handleValidationErrors
@@ -658,21 +684,36 @@ router.put('/categories/:id', [
             });
         }
         
-        // Slug değişirse benzersizlik kontrolü
-        if (updateData.slug && updateData.slug !== category.slug) {
+        // Adı değişirse slug'ı da güncelle
+        if (updateData.name && updateData.name !== category.name) {
+            const newSlug = updateData.name
+                .toLowerCase()
+                .replace(/ş/g, 's')
+                .replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u')
+                .replace(/ö/g, 'o')
+                .replace(/ı/g, 'i')
+                .replace(/ç/g, 'c')
+                .replace(/[^a-z0-9\s]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim('-');
+            
+            // Slug benzersizlik kontrolü
             const existingCategory = await Category.findOne({ 
                 where: { 
-                    slug: updateData.slug,
-                    id: { [require('sequelize').Op.ne]: id }
-                } 
+                    slug: newSlug,
+                    id: { [Op.ne]: category.id }
+                }
             });
-            
             if (existingCategory) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Bu slug zaten kullanılıyor'
+                    message: 'Bu kategori adı zaten kullanılıyor'
                 });
             }
+            
+            updateData.slug = newSlug;
         }
         
         await category.update(updateData);
@@ -692,43 +733,6 @@ router.put('/categories/:id', [
     }
 });
 
-// PUT /api/admin/categories/:id/status - Kategori durumu değiştir
-router.put('/categories/:id/status', [
-    authMiddleware,
-    body('status')
-        .isIn(['active', 'inactive'])
-        .withMessage('Geçerli bir durum seçiniz'),
-    handleValidationErrors
-], async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-        
-        const category = await Category.findByPk(id);
-        if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: 'Kategori bulunamadı'
-            });
-        }
-        
-        await category.update({ status });
-        
-        res.json({
-            success: true,
-            message: `Kategori durumu ${status === 'active' ? 'aktif' : 'pasif'} yapıldı`,
-            data: { category }
-        });
-        
-    } catch (error) {
-        console.error('Category status update error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Kategori durumu güncellenirken hata oluştu'
-        });
-    }
-});
-
 // DELETE /api/admin/categories/:id - Kategori sil
 router.delete('/categories/:id', authMiddleware, async (req, res) => {
     try {
@@ -742,12 +746,12 @@ router.delete('/categories/:id', authMiddleware, async (req, res) => {
             });
         }
         
-        // Bu kategoriye ait turlar var mı kontrol et
+        // Bu kategoriye ait turların olup olmadığını kontrol et
         const tourCount = await Tour.count({ where: { category_id: id } });
         if (tourCount > 0) {
             return res.status(400).json({
                 success: false,
-                message: `Bu kategoriye ait ${tourCount} tur bulunuyor. Önce turları silin veya başka kategoriye taşıyın.`
+                message: 'Bu kategoriye ait turlar bulunmaktadır. Önce turları silin veya başka kategoriye taşıyın.'
             });
         }
         
@@ -766,3 +770,111 @@ router.delete('/categories/:id', authMiddleware, async (req, res) => {
         });
     }
 });
+
+// ==================== MESSAGES MANAGEMENT ====================
+
+// GET /api/admin/messages - İletişim mesajları
+router.get('/messages', authMiddleware, async (req, res) => {
+    try {
+        const { status, page = 1, limit = 20 } = req.query;
+        const offset = (page - 1) * limit;
+        
+        const whereClause = status ? { status } : {};
+        
+        const { count, rows } = await ContactMessage.findAndCountAll({
+            where: whereClause,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            order: [['created_at', 'DESC']]
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                messages: rows,
+                pagination: {
+                    total: count,
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    pages: Math.ceil(count / limit)
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Messages listing error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Mesajlar listelenirken hata oluştu'
+        });
+    }
+});
+
+// PUT /api/admin/messages/:id - Mesaj durumu güncelle
+router.put('/messages/:id', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        if (!['new', 'read', 'replied'].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Geçersiz durum değeri'
+            });
+        }
+        
+        const message = await ContactMessage.findByPk(id);
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Mesaj bulunamadı'
+            });
+        }
+        
+        await message.update({ status });
+        
+        res.json({
+            success: true,
+            message: 'Mesaj durumu güncellendi',
+            data: { message }
+        });
+        
+    } catch (error) {
+        console.error('Message update error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Mesaj güncellenirken hata oluştu'
+        });
+    }
+});
+
+// DELETE /api/admin/messages/:id - Mesaj sil
+router.delete('/messages/:id', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const message = await ContactMessage.findByPk(id);
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Mesaj bulunamadı'
+            });
+        }
+        
+        await message.destroy();
+        
+        res.json({
+            success: true,
+            message: 'Mesaj başarıyla silindi'
+        });
+        
+    } catch (error) {
+        console.error('Message delete error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Mesaj silinirken hata oluştu'
+        });
+    }
+});
+
+module.exports = router;

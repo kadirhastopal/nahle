@@ -1,4 +1,4 @@
-// admin/js/app.js
+// admin/js/app.js - Login Handler Düzeltmesi
 class AdminApp {
     constructor() {
         this.currentSection = 'dashboard';
@@ -44,6 +44,7 @@ class AdminApp {
         }
     }
 
+    // ✅ DÜZELTME: Login handler'ı düzelt
     async handleLogin(e) {
         e.preventDefault();
         console.log('🔑 Login işlemi başlatılıyor...');
@@ -54,9 +55,12 @@ class AdminApp {
         
         // Show loading state
         this.setLoginLoading(true);
-        errorDiv.classList.add('hidden');
+        if (errorDiv) {
+            errorDiv.classList.add('hidden');
+        }
         
         try {
+            // ✅ DÜZELTME: AuthManager'a doğru formatta veri gönder
             const result = await authManager.login({
                 login: formData.get('login'),
                 password: formData.get('password')
@@ -67,12 +71,12 @@ class AdminApp {
                 this.showDashboard();
                 await this.loadDashboardData();
             } else {
-                throw new Error(result.message);
+                console.error('❌ Giriş başarısız:', result.message);
+                this.showLoginError(result.message || 'Giriş hatası');
             }
         } catch (error) {
             console.error('❌ Login error:', error);
-            errorDiv.textContent = error.message;
-            errorDiv.classList.remove('hidden');
+            this.showLoginError('Bağlantı hatası: ' + error.message);
         } finally {
             this.setLoginLoading(false);
         }
@@ -82,145 +86,231 @@ class AdminApp {
         const loginBtn = document.getElementById('loginBtn');
         const loginBtnText = document.getElementById('loginBtnText');
         const loginBtnLoader = document.getElementById('loginBtnLoader');
-
-        if (loginBtn) {
-            loginBtn.disabled = loading;
-            if (loginBtnText) loginBtnText.classList.toggle('hidden', loading);
-            if (loginBtnLoader) loginBtnLoader.classList.toggle('hidden', !loading);
+        
+        if (loginBtn && loginBtnText && loginBtnLoader) {
+            if (loading) {
+                loginBtn.disabled = true;
+                loginBtnText.classList.add('hidden');
+                loginBtnLoader.classList.remove('hidden');
+            } else {
+                loginBtn.disabled = false;
+                loginBtnText.classList.remove('hidden');
+                loginBtnLoader.classList.add('hidden');
+            }
         }
+    }
+
+    showLoginError(message) {
+        const errorDiv = document.getElementById('loginError');
+        if (errorDiv) {
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+        
+        console.error('Login Error:', message);
     }
 
     showLogin() {
-        console.log('📋 Login ekranı gösteriliyor');
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('adminDashboard').classList.add('hidden');
+        const loginSection = document.getElementById('loginSection');
+        const mainSection = document.getElementById('mainSection');
+        
+        if (loginSection && mainSection) {
+            loginSection.classList.remove('hidden');
+            mainSection.classList.add('hidden');
+        }
     }
 
     showDashboard() {
-        console.log('📊 Dashboard gösteriliyor');
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('adminDashboard').classList.remove('hidden');
+        const loginSection = document.getElementById('loginSection');
+        const mainSection = document.getElementById('mainSection');
         
-        if (authManager.user) {
-            const displayName = authManager.user.display_name || authManager.user.full_name || authManager.user.username;
-            document.getElementById('userDisplayName').textContent = displayName;
-            document.getElementById('userInitial').textContent = displayName.charAt(0).toUpperCase();
+        if (loginSection && mainSection) {
+            loginSection.classList.add('hidden');
+            mainSection.classList.remove('hidden');
         }
+        
+        // Dashboard'ı aktif olarak işaretle
+        this.showSection('dashboard');
     }
 
     async loadDashboardData() {
-        console.log('📊 Dashboard verileri yükleniyor...');
-        await dashboardManager.loadDashboardData();
+        try {
+            console.log('📊 Dashboard verileri yükleniyor...');
+            
+            const response = await fetch('/api/admin/dashboard', {
+                headers: authManager.getAuthHeaders()
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.renderDashboard(data.data);
+                console.log('✅ Dashboard verileri yüklendi');
+            } else {
+                console.error('❌ Dashboard API hatası');
+            }
+        } catch (error) {
+            console.error('❌ Dashboard yükleme hatası:', error);
+        }
+    }
+
+    renderDashboard(data) {
+        const container = document.getElementById('dashboardContent');
+        if (!container || !data) return;
+
+        const { stats, recentTours, recentMessages } = data;
+
+        container.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Aktif Turlar</p>
+                            <p class="text-2xl font-bold text-gray-900">${stats.totalTours || 0}</p>
+                        </div>
+                        <div class="text-admin-primary text-3xl">🚌</div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Kategoriler</p>
+                            <p class="text-2xl font-bold text-gray-900">${stats.totalCategories || 0}</p>
+                        </div>
+                        <div class="text-admin-primary text-3xl">📂</div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Yeni Mesajlar</p>
+                            <p class="text-2xl font-bold text-gray-900">${stats.newMessages || 0}</p>
+                        </div>
+                        <div class="text-admin-primary text-3xl">📧</div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Toplam Mesajlar</p>
+                            <p class="text-2xl font-bold text-gray-900">${stats.totalMessages || 0}</p>
+                        </div>
+                        <div class="text-admin-primary text-3xl">💬</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Son Eklenen Turlar</h3>
+                    <div class="space-y-3">
+                        ${recentTours && recentTours.length > 0 
+                            ? recentTours.map(tour => `
+                                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                    <div class="text-2xl">🚌</div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">${tour.title}</p>
+                                        <p class="text-sm text-gray-500">${tour.Category?.name || 'Kategori Yok'}</p>
+                                    </div>
+                                </div>
+                            `).join('')
+                            : '<p class="text-gray-500 text-center py-4">Henüz tur eklenmemiş</p>'
+                        }
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Yeni Mesajlar</h3>
+                    <div class="space-y-3">
+                        ${recentMessages && recentMessages.length > 0 
+                            ? recentMessages.map(message => `
+                                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                    <div class="text-2xl">📧</div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">${message.name}</p>
+                                        <p class="text-sm text-gray-500">${message.email}</p>
+                                    </div>
+                                </div>
+                            `).join('')
+                            : '<p class="text-gray-500 text-center py-4">Yeni mesaj yok</p>'
+                        }
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    showSection(sectionName) {
+        console.log('📍 Section değiştiriliyor:', sectionName);
+        
+        this.currentSection = sectionName;
+        
+        // Sidebar'da aktif linkı güncelle
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+        sidebarLinks.forEach(link => {
+            link.classList.remove('sidebar-link-active');
+            if (link.dataset.section === sectionName) {
+                link.classList.add('sidebar-link-active');
+            }
+        });
+        
+        // Content alanını güncelle
+        const contentSections = document.querySelectorAll('.content-section');
+        contentSections.forEach(section => {
+            section.classList.add('hidden');
+        });
+        
+        const targetSection = document.getElementById(sectionName + 'Content');
+        if (targetSection) {
+            targetSection.classList.remove('hidden');
+        }
+        
+        // Section'a özel yükleme işlemleri
+        switch (sectionName) {
+            case 'tours':
+                if (typeof toursManager !== 'undefined') {
+                    toursManager.loadTours();
+                }
+                break;
+            case 'categories':
+                if (typeof categoriesManager !== 'undefined') {
+                    categoriesManager.loadCategories();
+                }
+                break;
+            case 'messages':
+                if (typeof messagesManager !== 'undefined') {
+                    messagesManager.loadMessages();
+                }
+                break;
+        }
     }
 
     toggleMobileMenu() {
-        const mobileMenu = document.getElementById('mobileMenu');
-        if (mobileMenu) {
-            mobileMenu.classList.toggle('hidden');
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('translate-x-0');
+            sidebar.classList.toggle('-translate-x-full');
         }
     }
 
-    closeMobileMenu() {
-        const mobileMenu = document.getElementById('mobileMenu');
-        if (mobileMenu) {
-            mobileMenu.classList.add('hidden');
-        }
+    logout() {
+        authManager.logout();
     }
 }
 
-// Global functions for navigation
-function showSection(sectionName) {
-    console.log('📄 Section değiştiriliyor:', sectionName);
+// DOM yüklendikten sonra app'i başlat
+document.addEventListener('DOMContentLoaded', () => {
+    window.adminApp = new AdminApp();
     
-    // Hide all sections
-    document.querySelectorAll('.section-content').forEach(section => {
-        section.classList.add('hidden');
-    });
-    
-    // Show selected section
-    document.getElementById(sectionName + 'Section').classList.remove('hidden');
-    
-    // Update navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active', 'bg-admin-secondary', 'text-white');
-        item.classList.add('text-pink-100');
-    });
-    
-    document.querySelectorAll('.nav-item-mobile').forEach(item => {
-        item.classList.remove('bg-admin-secondary', 'text-white');
-        item.classList.add('text-pink-100');
-    });
-    
-    // Find and activate current nav item
-    const currentNavItem = document.querySelector(`a[onclick="showSection('${sectionName}')"]`);
-    if (currentNavItem && !currentNavItem.classList.contains('nav-item-mobile')) {
-        currentNavItem.classList.remove('text-pink-100');
-        currentNavItem.classList.add('active', 'bg-admin-secondary', 'text-white');
-    }
-    
-    const currentMobileNavItem = document.querySelector(`a.nav-item-mobile[onclick="showSection('${sectionName}')"]`);
-    if (currentMobileNavItem) {
-        currentMobileNavItem.classList.remove('text-pink-100');
-        currentMobileNavItem.classList.add('bg-admin-secondary', 'text-white');
-    }
-    
-    // Update page title
-    const titles = {
-        'dashboard': 'Dashboard',
-        'tours': 'Tur Yönetimi',
-        'categories': 'Kategori Yönetimi',
-        'messages': 'Mesaj Yönetimi',
-        'settings': 'Site Ayarları'
+    // Global navigation function
+    window.showSection = (sectionName) => {
+        window.adminApp.showSection(sectionName);
     };
     
-    document.getElementById('pageTitle').textContent = titles[sectionName] || 'Admin Panel';
-    
-    // Close mobile menu
-    if (window.adminApp) {
-        window.adminApp.closeMobileMenu();
-    }
-    
-    // Load section specific data
-    if (sectionName === 'dashboard') {
-        dashboardManager.loadDashboardData();
-    } else if (sectionName === 'messages') {
-        if (window.messagesManager) {
-            messagesManager.loadMessages();
-        }
-    } else if (sectionName === 'tours') {
-    } else if (sectionName === 'categories') {
-        if (window.categoriesManager) {
-            categoriesManager.loadCategories();
-        }
-        if (window.toursManager) {
-    } else if (sectionName === 'categories') {
-        if (window.categoriesManager) {
-            categoriesManager.loadCategories();
-        }
-            toursManager.loadTours();
-    } else if (sectionName === 'categories') {
-        if (window.categoriesManager) {
-            categoriesManager.loadCategories();
-        }
-        }
-    } else if (sectionName === 'categories') {
-        if (window.categoriesManager) {
-            categoriesManager.loadCategories();
-        }
-    }
-}
-
-function logout() {
-    console.log('🚪 Çıkış yapılıyor...');
-    authManager.logout();
-    if (window.adminApp) {
-        window.adminApp.showLogin();
-    }
-}
-
-// Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    window.adminApp = new AdminApp();
+    // Global logout function
+    window.logout = () => {
+        window.adminApp.logout();
+    };
 });
-
-console.log('✅ Admin panel script yüklendi!');

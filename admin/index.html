@@ -3,188 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Nahletur.com</title>
+    <title>Nahletur Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'admin-primary': '#a8145b',
-                        'admin-secondary': '#8b1249',
-                        'admin-accent': '#d946ef',
-                        'admin-light': '#fdf2f8',
-                        'admin-dark': '#701a75'
+                        'admin-primary': '#2563eb',
+                        'admin-secondary': '#1d4ed8',
+                        'admin-light': '#eff6ff'
                     }
                 }
             }
         }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .gradient-bg { background: linear-gradient(135deg, #a8145b 0%, #8b1249 100%); }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar-link {
+            @apply flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer;
+        }
+        .sidebar-link-active {
+            @apply bg-admin-light text-admin-primary font-medium;
+        }
+        .section {
+            @apply hidden;
+        }
+        .section.active {
+            @apply block;
+        }
     </style>
 </head>
-<body class="bg-gray-100">
-    <!-- Login Screen -->
-    <div id="loginScreen" class="min-h-screen flex items-center justify-center gradient-bg py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-8">
-            <div class="text-center">
-                <h1 class="text-4xl font-bold text-white mb-2">Nahletur.com</h1>
-                <h2 class="text-xl text-pink-100 mb-8">Admin Paneli</h2>
-                <div class="bg-white rounded-lg shadow-xl p-8">
-                    <form id="loginForm" class="space-y-6">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 bg-admin-light rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8 text-admin-primary" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            <h3 class="text-2xl font-semibold text-gray-800">Giriş</h3>
-                        </div>
-                        
-                        <div id="loginError" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded"></div>
-                        
-                        <div>
-                            <label for="username" class="block text-sm font-medium text-gray-700">Kullanıcı Adı</label>
-                            <input id="username" name="login" type="text" required 
-                                   class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-admin-primary focus:border-admin-primary">
-                        </div>
-                        
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-gray-700">Şifre</label>
-                            <input id="password" name="password" type="password" required 
-                                   class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-admin-primary focus:border-admin-primary">
-                        </div>
-                        
-                        <button type="submit" 
-                                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-admin-primary hover:bg-admin-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-admin-primary transition-colors">
-                            <span id="loginBtnText">Giriş Yap</span>
-                            <span id="loginBtnSpinner" class="hidden">
-                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Giriş yapılıyor...
-                            </span>
-                        </button>
-                        
-                        <div class="text-center text-sm text-gray-600 mt-4">
-                            <p>Demo: <strong>admin</strong> / <strong>admin123</strong></p>
-                        </div>
-                    </form>
+<body class="bg-gray-50">
+    <!-- Login Section -->
+    <div id="loginSection" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div class="max-w-md w-full mx-4">
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <div class="text-center mb-8">
+                    <div class="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-white text-2xl font-bold">N</span>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">Nahletur Admin</h2>
+                    <p class="text-gray-600 mt-2">Yönetim paneline hoş geldiniz</p>
                 </div>
+                
+                <form id="loginForm" class="space-y-6">
+                    <div id="loginError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+                    
+                    <div>
+                        <label for="login" class="block text-sm font-medium text-gray-700 mb-2">
+                            Kullanıcı Adı veya E-posta
+                        </label>
+                        <input 
+                            id="login" 
+                            name="login" 
+                            type="text" 
+                            required 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent transition-all"
+                            placeholder="admin veya admin@nahletur.com"
+                        >
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Şifre
+                        </label>
+                        <input 
+                            id="password" 
+                            name="password" 
+                            type="password" 
+                            required 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent transition-all"
+                            placeholder="••••••••"
+                        >
+                    </div>
+                    
+                    <button 
+                        type="submit" 
+                        id="loginBtn"
+                        class="w-full gradient-bg text-white py-3 px-4 rounded-lg hover:opacity-90 transition-all font-semibold focus:outline-none focus:ring-2 focus:ring-admin-primary focus:ring-offset-2"
+                    >
+                        <span id="loginBtnText">Giriş Yap</span>
+                        <span id="loginBtnLoader" class="hidden">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Giriş yapılıyor...
+                        </span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Admin Dashboard -->
-    <div id="adminDashboard" class="hidden min-h-screen bg-gray-100">
-        <!-- Top Navigation Bar -->
-        <nav class="gradient-bg shadow-lg">
-            <div class="mx-auto px-4">
+    <!-- Main Admin Panel -->
+    <div id="mainSection" class="hidden min-h-screen bg-gray-50">
+        <!-- Top Navigation -->
+        <nav class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
-                    <!-- Logo & Brand -->
                     <div class="flex items-center">
-                        <div class="flex-shrink-0 flex items-center">
-                            <h1 class="text-xl font-bold text-white">Nahletur Admin</h1>
-                        </div>
-                        
-                        <!-- Desktop Navigation -->
-                        <div class="hidden md:ml-8 md:flex md:space-x-1">
-                            <a href="#" onclick="showSection('dashboard')" 
-                               class="nav-item active px-4 py-2 rounded-md text-sm font-medium text-white bg-admin-secondary hover:bg-admin-secondary transition-colors">
-                                📊 Dashboard
-                            </a>
-                            <a href="#" onclick="showSection('tours')" 
-                               class="nav-item px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                                🚌 Turlar
-                            </a>
-                            <a href="#" onclick="showSection('categories')" 
-                               class="nav-item px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                                📂 Kategoriler
-                            </a>
-                            <a href="#" onclick="showSection('messages')" 
-                               class="nav-item px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                                💬 Mesajlar
-                            </a>
-                            <a href="#" onclick="showSection('settings')" 
-                               class="nav-item px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                                ⚙️ Ayarlar
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <!-- User Menu -->
-                    <div class="flex items-center space-x-4">
-                        <span class="text-pink-100 text-sm hidden md:block">Hoşgeldiniz, Admin</span>
-                        <button onclick="logout()" 
-                                class="text-pink-100 hover:text-white transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        <button 
+                            id="mobileMenuBtn"
+                            class="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+                        >
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>
                         </button>
-                        
-                        <!-- Mobile menu button -->
-                        <div class="md:hidden">
-                            <button id="mobileMenuBtn" class="text-pink-100 hover:text-white p-2">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                                </svg>
-                            </button>
+                        <div class="flex-shrink-0 flex items-center ml-4 lg:ml-0">
+                            <span class="text-xl font-bold text-gray-900">Nahletur Admin</span>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Mobile Navigation -->
-                <div id="mobileMenu" class="hidden md:hidden pb-4">
-                    <div class="flex flex-col space-y-1">
-                        <a href="#" onclick="showSection('dashboard')" 
-                           class="nav-item-mobile active block px-4 py-2 rounded-md text-sm font-medium text-white bg-admin-secondary">
-                            📊 Dashboard
-                        </a>
-                        <a href="#" onclick="showSection('tours')" 
-                           class="nav-item-mobile block px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                            🚌 Turlar
-                        </a>
-                        <a href="#" onclick="showSection('categories')" 
-                           class="nav-item-mobile block px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                            📂 Kategoriler
-                        </a>
-                        <a href="#" onclick="showSection('messages')" 
-                           class="nav-item-mobile block px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                            💬 Mesajlar
-                        </a>
-                        <a href="#" onclick="showSection('settings')" 
-                           class="nav-item-mobile block px-4 py-2 rounded-md text-sm font-medium text-pink-100 hover:text-white hover:bg-admin-secondary transition-colors">
-                            ⚙️ Ayarlar
-                        </a>
+                    <div class="flex items-center gap-4">
+                        <span id="pageTitle" class="text-gray-700 font-medium">Dashboard</span>
+                        <button 
+                            onclick="logout()"
+                            class="bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                        >
+                            Çıkış
+                        </button>
                     </div>
                 </div>
             </div>
         </nav>
 
-        <!-- Main Content Area -->
-        <div class="flex-1 relative z-0 flex overflow-hidden">
-            <main class="flex-1 relative z-0 overflow-y-auto focus:outline-none" tabindex="0">
-                <!-- Page Header -->
-                <div class="border-b border-gray-200 px-4 py-4 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8">
-                    <div class="flex-1 min-w-0">
-                        <h1 class="text-lg font-medium leading-6 text-gray-900 sm:truncate" id="pageTitle">
-                            Dashboard
-                        </h1>
+        <div class="flex">
+            <!-- Sidebar -->
+            <aside class="w-64 min-h-screen bg-white shadow-sm border-r border-gray-200 fixed lg:relative lg:translate-x-0 -translate-x-full transition-transform duration-300 z-30" id="sidebar">
+                <nav class="mt-8">
+                    <div class="px-4 space-y-2">
+                        <a onclick="showSection('dashboard')" class="sidebar-link sidebar-link-active" data-section="dashboard">
+                            <span class="text-xl">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                        <a onclick="showSection('tours')" class="sidebar-link" data-section="tours">
+                            <span class="text-xl">🚌</span>
+                            <span>Turlar</span>
+                        </a>
+                        <a onclick="showSection('categories')" class="sidebar-link" data-section="categories">
+                            <span class="text-xl">📂</span>
+                            <span>Kategoriler</span>
+                        </a>
+                        <a onclick="showSection('messages')" class="sidebar-link" data-section="messages">
+                            <span class="text-xl">📧</span>
+                            <span>Mesajlar</span>
+                        </a>
+                        <a onclick="showSection('settings')" class="sidebar-link" data-section="settings">
+                            <span class="text-xl">⚙️</span>
+                            <span>Ayarlar</span>
+                        </a>
                     </div>
-                </div>
+                </nav>
+            </aside>
 
-                <!-- Page Content -->
-                <div class="px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Main Content -->
+            <main class="flex-1 lg:ml-0">
+                <div class="p-6">
                     <!-- Dashboard Section -->
-                    <div id="dashboardSection" class="section">
+                    <div id="dashboardSection" class="section active">
                         <div id="dashboardContent">
                             <div class="text-center py-8">
                                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-admin-primary mx-auto"></div>
@@ -194,7 +174,7 @@
                     </div>
 
                     <!-- Tours Section -->
-                    <div id="toursSection" class="section hidden">
+                    <div id="toursSection" class="section">
                         <div id="toursContent">
                             <div class="text-center py-8">
                                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-admin-primary mx-auto"></div>
@@ -204,7 +184,7 @@
                     </div>
 
                     <!-- Categories Section -->
-                    <div id="categoriesSection" class="section hidden">
+                    <div id="categoriesSection" class="section">
                         <div id="categoriesContent">
                             <div class="text-center py-8">
                                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-admin-primary mx-auto"></div>
@@ -214,7 +194,7 @@
                     </div>
 
                     <!-- Messages Section -->
-                    <div id="messagesSection" class="section hidden">
+                    <div id="messagesSection" class="section">
                         <div id="messagesContent">
                             <div class="text-center py-8">
                                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-admin-primary mx-auto"></div>
@@ -224,7 +204,7 @@
                     </div>
 
                     <!-- Settings Section -->
-                    <div id="settingsSection" class="section hidden">
+                    <div id="settingsSection" class="section">
                         <div id="settingsContent">
                             <div class="bg-white rounded-xl shadow-sm border p-6">
                                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Site Ayarları</h3>
@@ -237,168 +217,39 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- ✅ DÜZELTME: Sadece gerekli script'leri DOĞRU SIRADA yükle -->
+    <script src="/admin/js/auth.js"></script>
     <script src="/admin/js/tour-form-extended.js"></script>
     <script src="/admin/js/tours.js"></script>
     <script src="/admin/js/tour-form-handler.js"></script>
-    <script src="/admin/js/auth.js"></script>
     <script src="/admin/js/dashboard.js"></script>
-    <script src="/admin/js/tours.js"></script>
     <script src="/admin/js/categories.js"></script>
     <script src="/admin/js/messages.js"></script>
-    <script src="/admin/js/image-uploader.js"></script>
     <script src="/admin/js/app.js"></script>
     
-    <!-- ✅ TEK BİR AdminApp CLASS TANIMLAMASI -->
+    <!-- ✅ GLOBAL FONKSİYONLAR -->
     <script>
-        // Global admin app class - SADECE BU TANIMLAMAYI BIRAKIN
-        class AdminApp {
-            constructor() {
-                this.currentSection = 'dashboard';
-                this.init();
-            }
-
-            init() {
-                console.log('🚀 Admin App başlatılıyor...');
-                
-                // Check authentication
-                if (authManager.isAuthenticated()) {
-                    this.showDashboard();
-                } else {
-                    this.showLogin();
-                }
-                
-                // Setup event listeners
-                this.setupEventListeners();
-                
-                console.log('✅ Admin App hazır!');
-            }
-
-            setupEventListeners() {
-                // Login form
-                const loginForm = document.getElementById('loginForm');
-                if (loginForm) {
-                    loginForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        await this.handleLogin(e);
-                    });
-                }
-
-                // Mobile menu toggle
-                const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-                if (mobileMenuBtn) {
-                    mobileMenuBtn.addEventListener('click', () => {
-                        this.toggleMobileMenu();
-                    });
-                }
-            }
-
-            async handleLogin(e) {
-                const form = e.target;
-                const formData = new FormData(form);
-                const credentials = {
-                    login: formData.get('login'),
-                    password: formData.get('password')
-                };
-
-                const submitBtn = form.querySelector('button[type="submit"]');
-                const btnText = document.getElementById('loginBtnText');
-                const btnSpinner = document.getElementById('loginBtnSpinner');
-                const errorDiv = document.getElementById('loginError');
-
-                try {
-                    // UI: Loading state
-                    btnText.classList.add('hidden');
-                    btnSpinner.classList.remove('hidden');
-                    submitBtn.disabled = true;
-                    errorDiv.classList.add('hidden');
-
-                    const success = await authManager.login(credentials.login, credentials.password);
-                    
-                    if (success) {
-                        this.showDashboard();
-                    } else {
-                        throw new Error('Giriş başarısız');
-                    }
-
-                } catch (error) {
-                    console.error('Login error:', error);
-                    errorDiv.textContent = 'Kullanıcı adı veya şifre hatalı';
-                    errorDiv.classList.remove('hidden');
-
-                } finally {
-                    // UI: Reset state
-                    btnText.classList.remove('hidden');
-                    btnSpinner.classList.add('hidden');
-                    submitBtn.disabled = false;
-                }
-            }
-
-            showLogin() {
-                document.getElementById('loginScreen').classList.remove('hidden');
-                document.getElementById('adminDashboard').classList.add('hidden');
-            }
-
-            showDashboard() {
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                
-                // Load dashboard by default
-                showSection('dashboard');
-            }
-
-            toggleMobileMenu() {
-                const mobileMenu = document.getElementById('mobileMenu');
-                mobileMenu.classList.toggle('hidden');
-            }
-
-            closeMobileMenu() {
-                const mobileMenu = document.getElementById('mobileMenu');
-                mobileMenu.classList.add('hidden');
-            }
-        }
-
-        // Global functions for navigation
         function showSection(sectionName) {
-            console.log('📄 Seksiyon değiştiriliyor:', sectionName);
+            console.log('📍 Section değiştiriliyor:', sectionName);
             
             // Hide all sections
             document.querySelectorAll('.section').forEach(section => {
-                section.classList.add('hidden');
+                section.classList.remove('active');
             });
             
             // Show target section
             const targetSection = document.getElementById(sectionName + 'Section');
             if (targetSection) {
-                targetSection.classList.remove('hidden');
+                targetSection.classList.add('active');
             }
             
-            // Update navigation
-            updateNavigation(sectionName);
-            
-            // Load section specific data
-            loadSectionData(sectionName);
-        }
-
-        function updateNavigation(sectionName) {
-            // Remove active class from all nav items
-            document.querySelectorAll('.nav-item, .nav-item-mobile').forEach(item => {
-                item.classList.remove('active', 'bg-admin-secondary', 'text-white');
-                item.classList.add('text-pink-100');
+            // Update sidebar
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('sidebar-link-active');
+                if (link.dataset.section === sectionName) {
+                    link.classList.add('sidebar-link-active');
+                }
             });
-            
-            // Add active class to current nav item
-            const currentNavItem = document.querySelector(`a.nav-item[onclick="showSection('${sectionName}')"]`);
-            if (currentNavItem) {
-                currentNavItem.classList.remove('text-pink-100');
-                currentNavItem.classList.add('active', 'bg-admin-secondary', 'text-white');
-            }
-            
-            const currentMobileNavItem = document.querySelector(`a.nav-item-mobile[onclick="showSection('${sectionName}')"]`);
-            if (currentMobileNavItem) {
-                currentMobileNavItem.classList.remove('text-pink-100');
-                currentMobileNavItem.classList.add('active', 'bg-admin-secondary', 'text-white');
-            }
             
             // Update page title
             const titles = {
@@ -414,10 +265,11 @@
                 pageTitle.textContent = titles[sectionName] || 'Admin Panel';
             }
             
+            // Load section data
+            loadSectionData(sectionName);
+            
             // Close mobile menu
-            if (window.adminApp) {
-                window.adminApp.closeMobileMenu();
-            }
+            closeMobileMenu();
         }
 
         function loadSectionData(sectionName) {
@@ -448,17 +300,31 @@
         function logout() {
             console.log('🚪 Çıkış yapılıyor...');
             authManager.logout();
-            if (window.adminApp) {
-                window.adminApp.showLogin();
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('translate-x-0');
             }
         }
 
-        // Initialize app when DOM is loaded
+        // Mobile menu toggle
         document.addEventListener('DOMContentLoaded', function() {
-            window.adminApp = new AdminApp();
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar) {
+                        sidebar.classList.toggle('-translate-x-full');
+                        sidebar.classList.toggle('translate-x-0');
+                    }
+                });
+            }
         });
 
-        console.log('✅ Admin panel script yüklendi!');
+        console.log('✅ Admin panel HTML yüklendi!');
     </script>
 </body>
 </html>
