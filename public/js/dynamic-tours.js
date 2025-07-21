@@ -1,16 +1,12 @@
-// public/js/dynamic-tours.js - Ana sayfa dinamik turlar (Hac + Umre ayrı)
+// public/js/dynamic-tours.js - Ana sayfa dinamik turlar (TEMİZ VERSİYON)
 class DynamicTours {
     constructor() {
         this.tours = [];
         this.categories = [];
-        this.hacTours = [];
-        this.umreTours = [];
     }
 
     async loadTours() {
         try {
-            console.log('🚌 Turlar yükleniyor...');
-            
             // Turları ve kategorileri paralel olarak çek
             const [toursResponse, categoriesResponse] = await Promise.all([
                 fetch('/api/tours?limit=20&status=active'),
@@ -24,68 +20,46 @@ class DynamicTours {
                 this.tours = toursData.data.tours;
                 this.categories = categoriesData.data.categories;
                 
-                // Turları kategorilere göre ayır
-                this.separateToursByCategory();
-                
-                console.log('✅ Turlar yüklendi:', this.tours.length);
-                console.log('✅ Hac turları:', this.hacTours.length);
-                console.log('✅ Umre turları:', this.umreTours.length);
-                console.log('✅ Kategoriler yüklendi:', this.categories.length);
-                
-                this.renderAllTours();
+                this.renderTours();
             } else {
-                console.error('❌ API hatası');
                 this.showError();
             }
         } catch (error) {
-            console.error('❌ Tur yükleme hatası:', error);
             this.showError();
         }
     }
 
-    separateToursByCategory() {
-        // Kategori ID'lerine göre turları ayır
-        // Hac Turları = category_id: 1
-        // Umre Turları = category_id: 2
-        this.hacTours = this.tours.filter(tour => tour.category_id === 1);
-        this.umreTours = this.tours.filter(tour => tour.category_id === 2);
-    }
-
-    renderAllTours() {
-        this.renderHacTours();
-        this.renderUmreTours();
-    }
-
-    renderHacTours() {
-        const hacContainer = document.getElementById('dynamic-tours-container');
-        if (!hacContainer) return;
-
-        if (!this.hacTours || this.hacTours.length === 0) {
-            hacContainer.innerHTML = `
-                <div class="col-span-full text-center py-8">
-                    <p class="text-gray-600">Henüz aktif hac turu bulunmuyor.</p>
-                </div>
-            `;
-            return;
+    renderTours() {
+        // Ana sayfa için featured tours
+        const toursContainer = document.getElementById('dynamic-tours-container');
+        if (toursContainer) {
+            this.renderToursContainer(toursContainer, this.tours.slice(0, 6));
         }
-
-        hacContainer.innerHTML = this.hacTours.map(tour => this.renderTourCard(tour)).join('');
-    }
-
-    renderUmreTours() {
+        
+        // Umre turları için ayrı container varsa
         const umreContainer = document.getElementById('umre-tours-container');
-        if (!umreContainer) return;
+        if (umreContainer) {
+            const umreTours = this.tours.filter(tour => {
+                const category = this.categories.find(cat => cat.id === tour.category_id);
+                return category && category.slug === 'umre-turlari';
+            });
+            this.renderToursContainer(umreContainer, umreTours.slice(0, 6));
+        }
+    }
 
-        if (!this.umreTours || this.umreTours.length === 0) {
-            umreContainer.innerHTML = `
+    renderToursContainer(container, tours) {
+        if (!container) return;
+
+        if (!tours || tours.length === 0) {
+            container.innerHTML = `
                 <div class="col-span-full text-center py-8">
-                    <p class="text-gray-600">Henüz aktif umre turu bulunmuyor.</p>
+                    <p class="text-gray-600">Henüz aktif tur bulunmuyor.</p>
                 </div>
             `;
             return;
         }
 
-        umreContainer.innerHTML = this.umreTours.map(tour => this.renderTourCard(tour)).join('');
+        container.innerHTML = tours.map(tour => this.renderTourCard(tour)).join('');
     }
 
     renderTourCard(tour) {
@@ -95,7 +69,7 @@ class DynamicTours {
         // Badge rengini kategori ismine göre belirle
         const badgeClass = tour.category_id === 1 
             ? 'bg-nahletur-primary text-white' 
-            : 'bg-green-600 text-white'; // Umre için yeşil
+            : 'bg-nahletur-accent text-white';
         
         // Kota durumu
         const quotaStatus = tour.available_quota > 0 
@@ -106,12 +80,16 @@ class DynamicTours {
             ? 'text-green-600' 
             : 'text-red-600';
 
+        // Görsel render et
+        const imageHtml = this.renderTourImage(tour);
+
         return `
             <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover-lift overflow-hidden">
+                ${imageHtml}
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-semibold text-gray-800">${tour.title}</h3>
-                        <span class="px-3 py-1 rounded-full text-sm ${badgeClass}">
+                        <h3 class="text-xl font-semibold text-gray-800 line-clamp-2">${tour.title}</h3>
+                        <span class="px-3 py-1 rounded-full text-sm ${badgeClass} whitespace-nowrap ml-2">
                             ${categoryName}
                         </span>
                     </div>
@@ -139,7 +117,7 @@ class DynamicTours {
                     
                     <div class="flex items-center justify-between">
                         <div class="text-2xl font-bold text-nahletur-primary">
-                            ${tour.formatted_price_try || '₺' + (tour.price_try || 0).toLocaleString('tr-TR')}
+                            ${tour.price_try ? '₺' + Number(tour.price_try).toLocaleString('tr-TR') : 'Fiyat Sorulur'}
                         </div>
                         <button 
                             onclick="dynamicTours.showTourDetail('${tour.slug}')"
@@ -154,9 +132,74 @@ class DynamicTours {
         `;
     }
 
+    renderTourImage(tour) {
+        let imageUrl = null;
+
+        // Featured image'ı kontrol et
+        if (tour.featured_image) {
+            try {
+                // JSON string ise parse et
+                if (typeof tour.featured_image === 'string' && tour.featured_image.startsWith('{')) {
+                    const featuredImageData = JSON.parse(tour.featured_image);
+                    imageUrl = `/uploads/tours/${featuredImageData.medium || featuredImageData.original}`;
+                } else if (typeof tour.featured_image === 'object') {
+                    // Object ise direkt kullan
+                    imageUrl = `/uploads/tours/${tour.featured_image.medium || tour.featured_image.original}`;
+                } else {
+                    // String ise direkt kullan
+                    imageUrl = tour.featured_image.startsWith('/') ? tour.featured_image : `/uploads/tours/${tour.featured_image}`;
+                }
+            } catch (e) {
+                // Parse hatası varsa gallery'e geç
+            }
+        }
+
+        // Gallery'den al
+        if (!imageUrl && tour.gallery && tour.gallery.length > 0) {
+            try {
+                const firstGalleryImage = tour.gallery[0];
+                if (typeof firstGalleryImage === 'object') {
+                    imageUrl = `/uploads/tours/${firstGalleryImage.medium || firstGalleryImage.original}`;
+                }
+            } catch (e) {
+                // Gallery hatası
+            }
+        }
+
+        // Görsel varsa göster, yoksa placeholder
+        if (imageUrl) {
+            // HTML escape the placeholder for onerror
+            const placeholderEscaped = this.getPlaceholderHtml(tour.title).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+            
+            return `
+                <div class="h-48 bg-gray-200 rounded-t-xl overflow-hidden">
+                    <img src="${imageUrl}" alt="${tour.title}" 
+                         class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                         onerror="this.parentElement.innerHTML='${placeholderEscaped}';">
+                </div>
+            `;
+        } else {
+            return this.getPlaceholderHtml(tour.title);
+        }
+    }
+
+    getPlaceholderHtml(title) {
+        return `
+            <div class="h-48 bg-gradient-to-br from-nahletur-primary to-nahletur-secondary rounded-t-xl flex items-center justify-center">
+                <div class="text-center text-white">
+                    <svg class="w-16 h-16 mx-auto mb-2 opacity-75" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                    </svg>
+                    <p class="text-sm opacity-75 font-medium">
+                        ${title.length > 20 ? title.substring(0, 20) + '...' : title}
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
     showTourDetail(slug) {
-        // Şimdilik contact form'a scroll yapalım, ileride detay sayfasına yönlendireceğiz
-        console.log('🔗 Tur detayı:', slug);
+        // Contact form'a scroll yap
         document.getElementById('iletisim').scrollIntoView({ behavior: 'smooth' });
         
         // Contact form'a tur bilgisini ön-doldur
