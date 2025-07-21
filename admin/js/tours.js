@@ -459,7 +459,10 @@ class ToursManager {
             }
         }, 5000);
     }
-}
+} // ✅ ToursManager class'ının kapanış parantezi
 
-// Global instance oluştur
-const toursManager = new ToursManager();
+// ✅ Global instance oluştur
+if (typeof window !== 'undefined') {
+    window.toursManager = new ToursManager();
+    console.log('✅ ToursManager global olarak hazır!');
+}

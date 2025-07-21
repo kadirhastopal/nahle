@@ -111,111 +111,151 @@ router.get('/profile', authMiddleware, (req, res) => {
     });
 });
 
-// routes/api/admin.js - Dashboard endpoint düzeltmesi
+// routes/api/admin.js - Dashboard endpoint'ini bu ile değiştir
 
-// GET /api/admin/dashboard - Dashboard istatistikleri
+// GET /api/admin/dashboard - Dashboard istatistikleri (SIMPLE VERSION)
 router.get('/dashboard', authMiddleware, async (req, res) => {
     try {
-        console.log('📊 Dashboard verileri istendi');
+        console.log('📊 Dashboard API çağrıldı - User:', req.user.username);
         
-        // Genel istatistikler
-        const totalTours = await Tour.count({ where: { status: 'active' } });
-        const totalCategories = await Category.count({ where: { status: 'active' } });
-        const newMessages = await ContactMessage.count({ where: { status: 'new' } });
-        const totalMessages = await ContactMessage.count();
+        // Basit test verileri döndür
+        const responseData = {
+            stats: {
+                totalTours: 0,
+                totalCategories: 0,
+                newMessages: 0,
+                totalMessages: 0
+            },
+            recentTours: [],
+            recentMessages: []
+        };
         
-        console.log('📊 İstatistikler:', { totalTours, totalCategories, newMessages, totalMessages });
+        // Güvenli şekilde count'ları al
+        try {
+            responseData.stats.totalTours = await Tour.count();
+            console.log('✅ Tours count:', responseData.stats.totalTours);
+        } catch (e) {
+            console.error('❌ Tours count error:', e.message);
+        }
         
-        // Son turlar - ✅ DÜZELTME: association ismini düzelt
-        const recentTours = await Tour.findAll({
-            limit: 5,
-            order: [['created_at', 'DESC']],
-            include: [{
-                model: Category,
-                attributes: ['name'],
-                required: false // ✅ DÜZELTME: Left join yap
-            }]
-        });
+        try {
+            responseData.stats.totalCategories = await Category.count();
+            console.log('✅ Categories count:', responseData.stats.totalCategories);
+        } catch (e) {
+            console.error('❌ Categories count error:', e.message);
+        }
         
-        console.log('📊 Son turlar:', recentTours.length);
+        try {
+            responseData.stats.totalMessages = await ContactMessage.count();
+            console.log('✅ Messages count:', responseData.stats.totalMessages);
+        } catch (e) {
+            console.error('❌ Messages count error:', e.message);
+        }
         
-        // Son mesajlar
-        const recentMessages = await ContactMessage.findAll({
-            limit: 5,
-            order: [['created_at', 'DESC']],
-            where: { status: 'new' }
-        });
-        
-        console.log('📊 Son mesajlar:', recentMessages.length);
+        console.log('✅ Dashboard response:', responseData);
         
         res.json({
             success: true,
-            data: {
-                stats: {
-                    totalTours,
-                    totalCategories,
-                    newMessages,
-                    totalMessages
-                },
-                recentTours,
-                recentMessages
-            }
+            data: responseData
         });
         
     } catch (error) {
-        console.error('❌ Dashboard stats error:', error);
+        console.error('❌ Dashboard error:', error);
         res.status(500).json({
             success: false,
-            message: 'Dashboard verileri alınırken hata oluştu: ' + error.message
+            message: 'Dashboard hatası: ' + error.message
         });
     }
 });
 
 // ==================== TOURS MANAGEMENT ====================
 
-// GET /api/admin/tours - Tüm turları listele
+// routes/api/admin.js - Tours GET endpoint'ini bu ile değiştir
+
+// GET /api/admin/tours - Tüm turları listele (DÜZELTME)
 router.get('/tours', authMiddleware, async (req, res) => {
     try {
+        console.log('🚌 Admin tours API çağrıldı - User:', req.user.username);
+        
         const { page = 1, limit = 50, status, category_id } = req.query;
         const offset = (page - 1) * limit;
         
+        // Basit query ile başla
         const whereClause = {};
-        if (status && status !== 'all') whereClause.status = status;
-        if (category_id) whereClause.category_id = category_id;
+        if (status && status !== 'all') {
+            whereClause.status = status;
+        }
+        if (category_id) {
+            whereClause.category_id = category_id;
+        }
         
+        console.log('🔍 Where clause:', whereClause);
+        
+        // Turları al (association olmadan)
         const { count, rows } = await Tour.findAndCountAll({
             where: whereClause,
-            include: [{
-                model: Category,
-                attributes: ['id', 'name', 'slug']
-            }],
             limit: parseInt(limit),
             offset: parseInt(offset),
             order: [
                 ['featured', 'DESC'],
                 ['priority', 'DESC'],
                 ['created_at', 'DESC']
+            ],
+            attributes: [
+                'id', 'title', 'slug', 'description', 'short_description',
+                'duration_days', 'price_try', 'quota', 'status', 'featured',
+                'start_date', 'end_date', 'created_at', 'category_id'
             ]
         });
         
+        console.log('✅ Tours found:', count);
+        
+        // Kategorileri ayrı olarak al
+        let categories = [];
+        try {
+            categories = await Category.findAll({
+                attributes: ['id', 'name', 'slug']
+            });
+            console.log('✅ Categories found:', categories.length);
+        } catch (catError) {
+            console.error('❌ Categories error:', catError.message);
+        }
+        
+        // Response'u oluştur
+        const responseData = {
+            tours: rows.map(tour => {
+                const tourData = tour.toJSON();
+                
+                // Kategori bilgisini ekle
+                const category = categories.find(cat => cat.id === tour.category_id);
+                if (category) {
+                    tourData.Category = category.toJSON();
+                }
+                
+                return tourData;
+            }),
+            pagination: {
+                total: count,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                pages: Math.ceil(count / limit)
+            }
+        };
+        
+        console.log('📊 Response prepared with', responseData.tours.length, 'tours');
+        
         res.json({
             success: true,
-            data: {
-                tours: rows,
-                pagination: {
-                    total: count,
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    pages: Math.ceil(count / limit)
-                }
-            }
+            data: responseData
         });
         
     } catch (error) {
-        console.error('Admin tours listing error:', error);
+        console.error('❌ Admin tours listing error:', error);
+        console.error('❌ Error stack:', error.stack);
+        
         res.status(500).json({
             success: false,
-            message: 'Turlar listelenirken hata oluştu'
+            message: 'Turlar listelenirken hata oluştu: ' + error.message
         });
     }
 });
@@ -348,6 +388,7 @@ router.post('/tours', authMiddleware, async (req, res) => {
             where: { id: tour.id },
             include: [{
                 model: Category,
+                as: 'Category',
                 attributes: ['id', 'name', 'slug']
             }]
         });
@@ -499,6 +540,7 @@ router.put('/tours/:id', authMiddleware, async (req, res) => {
             where: { id: tour.id },
             include: [{
                 model: Category,
+                as: 'Category',
                 attributes: ['id', 'name', 'slug']
             }]
         });

@@ -217,23 +217,24 @@
         </div>
     </div>
 
-    <!-- ✅ DÜZELTME: Sadece gerekli script'leri DOĞRU SIRADA yükle -->
+    <!-- JavaScript Files -->
     <script src="/admin/js/auth.js"></script>
+    <script src="/admin/js/dashboard.js"></script>
     <script src="/admin/js/tour-form-extended.js"></script>
     <script src="/admin/js/tours.js"></script>
-    <script src="/admin/js/tour-form-handler.js"></script>
-    <script src="/admin/js/dashboard.js"></script>
     <script src="/admin/js/categories.js"></script>
     <script src="/admin/js/messages.js"></script>
+    <script src="/admin/js/tour-form-handler.js"></script>
     <script src="/admin/js/app.js"></script>
-    
-    <!-- ✅ GLOBAL FONKSİYONLAR -->
+
+    <!-- Global Functions -->
     <script>
+        // Global navigation function
         function showSection(sectionName) {
             console.log('📍 Section değiştiriliyor:', sectionName);
             
             // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
+            document.querySelectorAll('.section').forEach(function(section) {
                 section.classList.remove('active');
             });
             
@@ -243,8 +244,8 @@
                 targetSection.classList.add('active');
             }
             
-            // Update sidebar
-            document.querySelectorAll('.sidebar-link').forEach(link => {
+            // Update sidebar active state
+            document.querySelectorAll('.sidebar-link').forEach(function(link) {
                 link.classList.remove('sidebar-link-active');
                 if (link.dataset.section === sectionName) {
                     link.classList.add('sidebar-link-active');
@@ -265,43 +266,72 @@
                 pageTitle.textContent = titles[sectionName] || 'Admin Panel';
             }
             
-            // Load section data
-            loadSectionData(sectionName);
+            // Load section data with delay
+            setTimeout(function() {
+                loadSectionData(sectionName);
+            }, 200);
             
             // Close mobile menu
             closeMobileMenu();
         }
 
+        // Load section specific data
         function loadSectionData(sectionName) {
+            console.log('📊 Section data yükleniyor:', sectionName);
+            
             switch(sectionName) {
                 case 'dashboard':
-                    if (window.dashboardManager) {
+                    if (window.dashboardManager && typeof dashboardManager.loadDashboardData === 'function') {
                         dashboardManager.loadDashboardData();
+                    } else if (window.adminApp && typeof adminApp.testDashboardAPI === 'function') {
+                        adminApp.testDashboardAPI();
+                    } else {
+                        console.log('⏳ Dashboard manager henüz hazır değil');
                     }
                     break;
+                    
                 case 'tours':
-                    if (window.toursManager) {
+                    if (window.toursManager && typeof toursManager.loadTours === 'function') {
+                        console.log('🚌 Tours Manager çağrılıyor...');
                         toursManager.loadTours();
+                    } else {
+                        console.error('❌ toursManager bulunamadı');
                     }
                     break;
+                    
                 case 'categories':
-                    if (window.categoriesManager) {
+                    if (window.categoriesManager && typeof categoriesManager.loadCategories === 'function') {
+                        console.log('📂 Categories Manager çağrılıyor...');
                         categoriesManager.loadCategories();
+                    } else {
+                        console.error('❌ categoriesManager bulunamadı');
                     }
                     break;
+                    
                 case 'messages':
-                    if (window.messagesManager) {
+                    if (window.messagesManager && typeof messagesManager.loadMessages === 'function') {
+                        console.log('📧 Messages Manager çağrılıyor...');
                         messagesManager.loadMessages();
+                    } else {
+                        console.error('❌ messagesManager bulunamadı');
                     }
                     break;
             }
         }
 
+        // Logout function
         function logout() {
             console.log('🚪 Çıkış yapılıyor...');
-            authManager.logout();
+            if (window.authManager && typeof authManager.logout === 'function') {
+                authManager.logout();
+            } else {
+                console.error('❌ AuthManager bulunamadı!');
+                localStorage.removeItem('authToken');
+                location.reload();
+            }
         }
 
+        // Close mobile menu
         function closeMobileMenu() {
             const sidebar = document.getElementById('sidebar');
             if (sidebar) {
@@ -310,8 +340,11 @@
             }
         }
 
-        // Mobile menu toggle
+        // DOM ready event
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Admin panel HTML yüklendi!');
+            
+            // Mobile menu toggle
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             if (mobileMenuBtn) {
                 mobileMenuBtn.addEventListener('click', function() {
@@ -322,9 +355,18 @@
                     }
                 });
             }
+            
+            // Check managers after a delay
+            setTimeout(function() {
+                console.log('🔍 Manager kontrolleri:');
+                console.log('  🔑 AuthManager:', typeof window.authManager);
+                console.log('  🚌 ToursManager:', typeof window.toursManager);
+                console.log('  📂 CategoriesManager:', typeof window.categoriesManager);
+                console.log('  📧 MessagesManager:', typeof window.messagesManager);
+                console.log('  📊 DashboardManager:', typeof window.dashboardManager);
+                console.log('  🎯 AdminApp:', typeof window.adminApp);
+            }, 1500);
         });
-
-        console.log('✅ Admin panel HTML yüklendi!');
     </script>
 </body>
 </html>

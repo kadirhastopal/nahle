@@ -10,7 +10,6 @@ class AuthManager {
         }
     }
 
-    // ✅ DÜZELTME: Login metodu parametrelerini düzelt
     async login(credentials) {
         try {
             console.log('🔐 Login attempt:', credentials.login || credentials.username);
@@ -120,5 +119,8 @@ class AuthManager {
     }
 }
 
-// Global instance oluştur
-const authManager = new AuthManager();
+// ✅ DÜZELTME: Global instance oluştur
+if (typeof window !== 'undefined') {
+    window.authManager = new AuthManager();
+    console.log('✅ AuthManager global olarak hazır!');
+}
