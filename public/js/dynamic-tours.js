@@ -1,4 +1,5 @@
-// public/js/dynamic-tours.js - DÜZELTİLMİŞ VERSİYON
+// public/js/dynamic-tours.js - GÜNCEL VERSİYON (Featured sorununu düzelten)
+
 class DynamicTours {
     constructor() {
         this.tours = [];
@@ -9,7 +10,6 @@ class DynamicTours {
     async init() {
         console.log('🚌 Dynamic Tours başlatılıyor...');
         
-        // Sayfa yüklendiğinde turları yükle
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 this.loadTours();
@@ -26,21 +26,20 @@ class DynamicTours {
             this.isLoading = true;
             console.log('📡 Turlar API\'den yükleniyor...');
             
-            // ✅ DÜZELTME: Doğru API endpoint'leri
             const [toursResponse, categoriesResponse] = await Promise.all([
-                fetch('/api/tours?limit=20&status=active'),
+                fetch('/api/tours?limit=50&debug=true'),
                 fetch('/api/categories')
             ]);
             
-            console.log('Tours Response:', toursResponse.status);
-            console.log('Categories Response:', categoriesResponse.status);
+            console.log('Tours Response Status:', toursResponse.status);
+            console.log('Categories Response Status:', categoriesResponse.status);
             
             if (toursResponse.ok && categoriesResponse.ok) {
                 const toursData = await toursResponse.json();
                 const categoriesData = await categoriesResponse.json();
                 
-                console.log('Tours Data:', toursData);
-                console.log('Categories Data:', categoriesData);
+                console.log('🔍 Tours Data Detail:', toursData);
+                console.log('🔍 Categories Data Detail:', categoriesData);
                 
                 if (toursData.success && categoriesData.success) {
                     this.tours = toursData.data.tours || [];
@@ -49,35 +48,56 @@ class DynamicTours {
                     console.log(`✅ ${this.tours.length} tur yüklendi`);
                     console.log(`✅ ${this.categories.length} kategori yüklendi`);
                     
+                    // Debug: Tüm turları listele
+                    this.tours.forEach(tour => {
+                        console.log(`🚌 Tur: ${tour.title} - Status: ${tour.status} - Category: ${tour.category_id} - Featured: ${tour.featured}`);
+                    });
+                    
                     this.renderAllContainers();
                 } else {
-                    console.error('❌ API response başarısız');
-                    this.showError();
+                    console.error('❌ API response başarısız:', toursData, categoriesData);
+                    this.showError('API yanıtı başarısız');
                 }
             } else {
-                console.error('❌ API request başarısız');
-                this.showError();
+                console.error('❌ API request başarısız:', {
+                    toursStatus: toursResponse.status,
+                    categoriesStatus: categoriesResponse.status
+                });
+                this.showError('API isteği başarısız');
             }
         } catch (error) {
             console.error('❌ Tur yükleme hatası:', error);
-            this.showError();
+            this.showError('Tur yükleme hatası: ' + error.message);
         } finally {
             this.isLoading = false;
         }
     }
 
     renderAllContainers() {
+        console.log('🎨 Rendering containers...');
+        
         // Ana sayfa featured tours
         const mainContainer = document.getElementById('dynamic-tours-container');
         if (mainContainer) {
             console.log('🎯 Ana sayfa turları render ediliyor...');
-            const featuredTours = this.tours.filter(tour => tour.featured).slice(0, 6);
-            if (featuredTours.length === 0) {
-                // Eğer featured tur yoksa, ilk 6 aktif turu göster
-                this.renderToursContainer(mainContainer, this.tours.slice(0, 6));
-            } else {
-                this.renderToursContainer(mainContainer, featuredTours);
+            
+            // ✅ DÜZELTME: Önce featured, sonra aktif, sonra TÜM turlar (hiç tur yoksa göster)
+            let toursToShow = this.tours.filter(tour => tour.featured && tour.status === 'active').slice(0, 6);
+            console.log(`🌟 Featured + Active turlar: ${toursToShow.length}`);
+            
+            if (toursToShow.length === 0) {
+                toursToShow = this.tours.filter(tour => tour.status === 'active').slice(0, 6);
+                console.log(`✅ Active turlar: ${toursToShow.length}`);
             }
+            
+            if (toursToShow.length === 0) {
+                // ✅ YENİ: Hiç aktif tur yoksa TÜM turları göster
+                toursToShow = this.tours.slice(0, 6);
+                console.log(`⚠️ Hiç aktif tur yok, tüm turlar gösteriliyor: ${toursToShow.length}`);
+            }
+            
+            console.log(`📊 Ana sayfada gösterilecek tur sayısı: ${toursToShow.length}`);
+            this.renderToursContainer(mainContainer, toursToShow);
         }
         
         // Umre turları container (eğer varsa)
@@ -86,8 +106,15 @@ class DynamicTours {
             console.log('🕌 Umre turları render ediliyor...');
             const umreTours = this.tours.filter(tour => {
                 const category = this.categories.find(cat => cat.id === tour.category_id);
-                return category && (category.slug === 'umre-turlari' || category.name.toLowerCase().includes('umre'));
+                const isUmre = category && (
+                    category.slug === 'umre-turlari' || 
+                    category.name.toLowerCase().includes('umre') ||
+                    tour.title.toLowerCase().includes('umre')
+                );
+                console.log(`🔍 Tur "${tour.title}" umre mi? ${isUmre} (Category: ${category ? category.name : 'yok'})`);
+                return isUmre;
             });
+            console.log(`📊 Umre turları sayısı: ${umreTours.length}`);
             this.renderToursContainer(umreContainer, umreTours.slice(0, 6));
         }
 
@@ -97,14 +124,25 @@ class DynamicTours {
             console.log('🕋 Hac turları render ediliyor...');
             const hacTours = this.tours.filter(tour => {
                 const category = this.categories.find(cat => cat.id === tour.category_id);
-                return category && (category.slug === 'hac-turlari' || category.name.toLowerCase().includes('hac'));
+                const isHac = category && (
+                    category.slug === 'hac-turlari' || 
+                    category.name.toLowerCase().includes('hac') ||
+                    tour.title.toLowerCase().includes('hac')
+                );
+                return isHac;
             });
+            console.log(`📊 Hac turları sayısı: ${hacTours.length}`);
             this.renderToursContainer(hacContainer, hacTours.slice(0, 6));
         }
     }
 
     renderToursContainer(container, tours) {
-        if (!container) return;
+        if (!container) {
+            console.log('❌ Container bulunamadı');
+            return;
+        }
+
+        console.log(`🎨 ${tours.length} tur card'ı render ediliyor...`);
 
         if (!tours || tours.length === 0) {
             container.innerHTML = `
@@ -114,17 +152,18 @@ class DynamicTours {
                             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
-                    <p class="text-gray-600 text-lg">Henüz aktif tur bulunmuyor.</p>
+                    <p class="text-gray-600 text-lg">Henüz tur bulunmuyor.</p>
                     <p class="text-gray-500 text-sm mt-2">Yakında yeni turlar eklenecek.</p>
+                    <button onclick="window.dynamicTours.loadTours()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        🔄 Tekrar Yükle
+                    </button>
                 </div>
             `;
             return;
         }
 
-        console.log(`🎨 ${tours.length} tur card'ı render ediliyor...`);
         container.innerHTML = tours.map(tour => this.renderTourCard(tour)).join('');
     }
-
 
     renderTourCard(tour) {
         const category = this.categories.find(cat => cat.id === tour.category_id);
@@ -201,6 +240,11 @@ class DynamicTours {
                                 ⭐ Öne Çıkan
                             </span>
                         ` : ''}
+                        ${tour.status !== 'active' ? `
+                            <span class="inline-block px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded-full">
+                                🚫 ${tour.status}
+                            </span>
+                        ` : ''}
                     </div>
                     
                     <!-- Tour Info Overlay -->
@@ -247,13 +291,6 @@ class DynamicTours {
                                         <span class="line-clamp-1">${service}</span>
                                     </div>
                                 `).join('')}
-                                ${tour.included_services && tour.included_services.split('\n').length > 3 ? `
-                                    <div class="text-xs text-indigo-600 font-medium">
-                                        <a href="/tur/${tour.id}" class="hover:underline">
-                                            +${tour.included_services.split('\n').length - 3} daha fazla...
-                                        </a>
-                                    </div>
-                                ` : ''}
                             </div>
                         </div>
                     ` : ''}
@@ -268,40 +305,28 @@ class DynamicTours {
                                         ${place.length > 20 ? place.substring(0, 20) + '...' : place}
                                     </span>
                                 `).join('')}
-                                ${visitPlaces.length < (tour.visit_places ? tour.visit_places.split('\n').length : 0) ? `
-                                    <a href="/tur/${tour.id}" class="inline-block px-2 py-1 bg-indigo-100 text-indigo-600 text-xs rounded-full hover:bg-indigo-200">
-                                        +Daha fazla
-                                    </a>
-                                ` : ''}
                             </div>
                         </div>
                     ` : ''}
-                    
-                    <!-- Tour Details -->
-                    <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                        <div class="flex items-center gap-4">
-                            <span class="flex items-center gap-1">
-                                👥 <span class="${quotaClass} font-medium">${quotaText}</span>
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Price and Actions -->
-                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+
+                    <!-- Pricing & Action -->
+                    <div class="flex items-center justify-between">
                         <div>
-                            <div class="text-2xl font-bold text-indigo-600">${formattedPrice}</div>
-                            <div class="text-xs text-gray-500">Kişi başı</div>
+                            <div class="text-2xl font-bold text-nahletur-primary mb-1">
+                                ${formattedPrice}
+                            </div>
+                            <div class="text-sm ${quotaClass} font-medium">
+                                👥 ${quotaText} kaldı
+                            </div>
                         </div>
-                        <div class="flex gap-2">
-                            <!-- ✅ Detay Görüntüle Butonu -->
+                        <div class="flex flex-col gap-2">
                             <a href="/tur/${tour.id}" 
-                               class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm">
-                                Detay
+                               class="bg-nahletur-primary text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-nahletur-secondary transition-colors text-center">
+                                📖 Detaylar
                             </a>
-                            <!-- İletişim Butonu -->
-                            <button onclick="contactForTour('${tour.title}')" 
-                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm">
-                                Bilgi Al
+                            <button onclick="reserveTour(${tour.id})" 
+                                    class="bg-green-500 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-green-600 transition-colors">
+                                📞 Rezerve Et
                             </button>
                         </div>
                     </div>
@@ -310,23 +335,82 @@ class DynamicTours {
         `;
     }
 
-// ✅ Global contact function
-function contactForTour(tourTitle) {
-    // İletişim sayfasına yönlendir veya modal aç
-    const message = `Merhaba, "${tourTitle}" turu hakkında bilgi almak istiyorum.`;
-    const whatsappUrl = `https://wa.me/905XXXXXXXXX?text=${encodeURIComponent(message)}`;
+    showError(message = 'Bir hata oluştu') {
+        const containers = [
+            'dynamic-tours-container',
+            'umre-tours-container', 
+            'hac-tours-container'
+        ];
+        
+        containers.forEach(containerId => {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="text-red-400 mb-4">
+                            <svg class="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Yükleme Hatası</h3>
+                        <p class="text-gray-600 mb-4">${message}</p>
+                        <button onclick="window.dynamicTours.loadTours()" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                            🔄 Tekrar Dene
+                        </button>
+                    </div>
+                `;
+            }
+        });
+    }
+}
+
+// ✅ Rezervasyon fonksiyonu
+function reserveTour(tourId) {
+    const phoneNumber = '905551234567'; // Gerçek WhatsApp numaranız
+    const message = `Merhaba, ${tourId} ID'li tur hakkında bilgi almak istiyorum.`;
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     
-    // WhatsApp'ta aç veya iletişim formunu doldur
-    if (confirm('WhatsApp ile iletişime geçmek ister misiniz?')) {
+    if (window.innerWidth > 768) {
         window.open(whatsappUrl, '_blank');
     } else {
-        // İletişim sayfasına yönlendir
-        window.location.href = '/iletisim';
+        window.location.href = whatsappUrl;
     }
+}
+
+// ✅ Hızlı featured yapma fonksiyonu (debug için)
+function makeTourFeatured(tourId) {
+    console.log(`🌟 ${tourId} ID'li tur featured yapılıyor...`);
+    
+    // Bu fonksiyonu admin panelde çağırabilirsiniz
+    fetch(`/api/admin/tours/${tourId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+        },
+        body: JSON.stringify({
+            featured: true
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Tur featured yapıldı:', data);
+            // Sayfayı yenile
+            window.dynamicTours.loadTours();
+        } else {
+            console.error('❌ Featured yapma hatası:', data);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Featured yapma hatası:', error);
+    });
 }
 
 // ✅ Global instance oluştur ve başlat
 const dynamicTours = new DynamicTours();
+window.dynamicTours = dynamicTours; // Debug için global erişim
+window.makeTourFeatured = makeTourFeatured; // Debug fonksiyonu
 dynamicTours.init();
 
-console.log('✅ Dynamic Tours script yüklendi');
+console.log('✅ Dynamic Tours script yüklendi (GÜNCEL VERSİYON)');

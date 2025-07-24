@@ -1,11 +1,10 @@
-// routes/api/index.js
+// routes/api/index.js - ACİL DURUM ÇÖZÜMÜ
 const express = require('express');
 const router = express.Router();
 
 // Rate limiting
 const rateLimit = require('express-rate-limit');
 
-// ✅ DÜZELTME: Rate limit ayarları daha güvenli
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 dakika
     max: 100, // IP başına maksimum istek
@@ -15,14 +14,11 @@ const limiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
-    // ✅ DÜZELTME: Trust proxy ayarını doğru şekilde yapılandır
     skip: (req) => {
-        // Development'ta rate limiting'i atla
         return process.env.NODE_ENV !== 'production';
     }
 });
 
-// Contact form için özel rate limit
 const contactLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 saat
     max: 5, // Saatte maksimum 5 mesaj
@@ -31,7 +27,6 @@ const contactLimiter = rateLimit({
         message: 'Saatte maksimum 5 mesaj gönderebilirsiniz.'
     },
     skip: (req) => {
-        // Development'ta rate limiting'i atla
         return process.env.NODE_ENV !== 'production';
     }
 });
@@ -39,12 +34,14 @@ const contactLimiter = rateLimit({
 // Rate limiting uygula
 router.use(limiter);
 
-// API Routes
+// ✅ TEMİZ API Routes (upload olmadan)
 router.use('/tours', require('./tours'));
 router.use('/categories', require('./categories'));
 router.use('/contact', contactLimiter, require('./contact'));
 router.use('/admin', require('./admin'));
-router.use('/upload', require('./upload')); // ✅ YENİ: Upload route'u eklendi
+
+// ❌ Upload route'unu şimdilik devre dışı bırakıyoruz
+// router.use('/upload', require('./upload')); 
 
 // API Ana endpoint
 router.get('/', (req, res) => {
@@ -55,8 +52,7 @@ router.get('/', (req, res) => {
             tours: '/api/tours',
             categories: '/api/categories',
             contact: '/api/contact',
-            admin: '/api/admin',
-            upload: '/api/upload'
+            admin: '/api/admin'
         },
         version: '1.0.0',
         timestamp: new Date().toISOString()
