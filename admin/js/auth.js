@@ -1,18 +1,14 @@
-// admin/js/auth.js - DÜZELTİLMİŞ VERSİYON
+// admin/js/auth.js - BASİT VE ÇALIŞAN VERSİYON
 class AuthManager {
     constructor() {
         this.token = localStorage.getItem('authToken');
         this.user = null;
-        
-        // Initialize validation if token exists
-        if (this.token) {
-            this.validateToken();
-        }
+        console.log('🔐 AuthManager oluşturuldu, token:', this.token ? 'var' : 'yok');
     }
 
     async login(credentials) {
         try {
-            console.log('🔐 Login attempt:', credentials.login || credentials.username);
+            console.log('🔑 Login attempt for:', credentials.login);
             
             const response = await fetch('/api/admin/login', {
                 method: 'POST',
@@ -20,36 +16,41 @@ class AuthManager {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    login: credentials.login || credentials.username,
+                    login: credentials.login,
                     password: credentials.password
                 })
             });
 
+            console.log('📡 Login response status:', response.status);
+            
             const data = await response.json();
-            console.log('📡 Login response:', data);
+            console.log('📡 Login response data:', data);
 
-            if (data.success) {
+            if (data.success && data.data) {
                 this.token = data.data.token;
                 this.user = data.data.user;
                 localStorage.setItem('authToken', this.token);
                 
-                console.log('✅ Login successful:', this.user.username);
+                console.log('✅ Login successful for:', this.user.username);
                 return { success: true, user: this.user };
             } else {
                 console.error('❌ Login failed:', data.message);
-                return { success: false, message: data.message };
+                return { success: false, message: data.message || 'Giriş başarısız' };
             }
         } catch (error) {
             console.error('❌ Login error:', error);
-            return { success: false, message: error.message || 'Giriş hatası' };
+            return { success: false, message: 'Bağlantı hatası: ' + error.message };
         }
     }
 
     async validateToken() {
-        if (!this.token) return false;
+        if (!this.token) {
+            console.log('❌ Token yok');
+            return false;
+        }
 
         try {
-            console.log('🔍 Validating token...');
+            console.log('🔍 Token validating...');
             
             const response = await fetch('/api/admin/profile', {
                 headers: {
@@ -58,28 +59,39 @@ class AuthManager {
                 }
             });
 
+            console.log('📡 Profile response status:', response.status);
+
             if (response.ok) {
                 const data = await response.json();
-                this.user = data.data.user;
-                console.log('✅ Token valid:', this.user.username);
-                return true;
-            } else {
-                console.log('❌ Token invalid');
-                this.logout();
-                return false;
+                console.log('📡 Profile response data:', data);
+                
+                if (data.success && data.data) {
+                    this.user = data.data.user;
+                    console.log('✅ Token valid for:', this.user.username);
+                    return true;
+                }
             }
+            
+            console.log('❌ Token invalid');
+            this.clearAuth();
+            return false;
         } catch (error) {
             console.error('❌ Token validation error:', error);
-            this.logout();
+            this.clearAuth();
             return false;
         }
     }
 
-    logout() {
-        console.log('🚪 Logging out...');
+    clearAuth() {
+        console.log('🧹 Auth temizleniyor...');
         this.token = null;
         this.user = null;
         localStorage.removeItem('authToken');
+    }
+
+    logout() {
+        console.log('🚪 Logout...');
+        this.clearAuth();
         
         // Sayfayı yenile
         if (typeof window !== 'undefined') {
@@ -102,24 +114,12 @@ class AuthManager {
         return this.user;
     }
 
-    showError(message) {
-        console.error('Auth Error:', message);
-        
-        // Login error div'ini bul ve göster
-        const errorDiv = document.getElementById('loginError');
-        if (errorDiv) {
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
-        }
-        
-        // Toast notification sistemi varsa kullan
-        if (typeof window.showNotification === 'function') {
-            window.showNotification('error', message);
-        }
+    getToken() {
+        return this.token;
     }
 }
 
-// ✅ DÜZELTME: Global instance oluştur
+// Global instance oluştur
 if (typeof window !== 'undefined') {
     window.authManager = new AuthManager();
     console.log('✅ AuthManager global olarak hazır!');

@@ -1,12 +1,54 @@
-// admin/js/tour-form-extended.js - Gelişmiş Tur Form Sistemi
+// admin/js/tour-form-extended.js - TAM VE EKSİKSİZ VERSİYON
 class ExtendedTourForm {
     constructor() {
         this.formSteps = ['basic', 'details', 'hotels', 'schedule', 'seo'];
         this.currentStep = 0;
-        this.formData = {};
+        this.formData = {}; // ✅ Kalıcı veri depolama
     }
 
-    // Ana form HTML'ini oluştur
+    // ✅ DÜZELTME: Veri koruma sistemi
+    saveStepData() {
+        const currentStepElement = document.getElementById(`step-${this.formSteps[this.currentStep]}`);
+        if (!currentStepElement) return;
+
+        const inputs = currentStepElement.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                this.formData[input.name] = input.checked;
+            } else if (input.type === 'radio') {
+                if (input.checked) {
+                    this.formData[input.name] = input.value;
+                }
+            } else {
+                this.formData[input.name] = input.value;
+            }
+        });
+
+        console.log(`💾 Step ${this.currentStep} verileri kaydedildi:`, this.formData);
+    }
+
+    // ✅ DÜZELTME: Veri yükleme sistemi
+    loadStepData() {
+        const currentStepElement = document.getElementById(`step-${this.formSteps[this.currentStep]}`);
+        if (!currentStepElement) return;
+
+        const inputs = currentStepElement.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (this.formData[input.name] !== undefined) {
+                if (input.type === 'checkbox') {
+                    input.checked = this.formData[input.name];
+                } else if (input.type === 'radio') {
+                    input.checked = input.value === this.formData[input.name];
+                } else {
+                    input.value = this.formData[input.name];
+                }
+            }
+        });
+
+        console.log(`📥 Step ${this.currentStep} verileri yüklendi`);
+    }
+
+    // Ana form HTML'ini oluştur - TAM VERSİYON
     renderExtendedTourModal() {
         return `
             <div id="tourModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -80,7 +122,7 @@ class ExtendedTourForm {
 
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Medine Gece Sayısı</label>
-                                        <input type="number" name="medine_nights" min="0" max="20"
+                                        <input type="number" name="medine_nights" min="0" max="15"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                                     </div>
 
@@ -91,8 +133,8 @@ class ExtendedTourForm {
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Bitiş Tarihi *</label>
-                                        <input type="date" name="end_date" required
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Bitiş Tarihi</label>
+                                        <input type="date" name="end_date"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                                     </div>
 
@@ -103,30 +145,23 @@ class ExtendedTourForm {
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Kota</label>
-                                        <input type="number" name="quota" min="1" max="500"
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Kontenjan</label>
+                                        <input type="number" name="quota" min="1" max="1000"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
                                     </div>
 
                                     <div class="md:col-span-2">
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Kısa Açıklama</label>
-                                        <textarea name="short_description" rows="2" maxlength="200"
-                                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                                  placeholder="Maksimum 200 karakter"></textarea>
-                                    </div>
-
-                                    <div class="md:col-span-2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Detaylı Açıklama</label>
-                                        <textarea name="description" rows="4"
+                                        <textarea name="short_description" rows="3" maxlength="200"
                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"></textarea>
                                     </div>
 
                                     <div class="md:col-span-2 flex items-center gap-4">
                                         <label class="flex items-center">
-                                            <input type="checkbox" name="featured" value="1" class="mr-2">
-                                            <span class="text-sm font-medium text-gray-700">⭐ Öne Çıkan Tur</span>
+                                            <input type="checkbox" name="featured" class="mr-2">
+                                            <span class="text-sm font-medium text-gray-700">Öne Çıkarılsın</span>
                                         </label>
-                                        <div>
+                                        <div class="flex items-center gap-2">
                                             <label class="block text-sm font-medium text-gray-700">Öncelik Sırası</label>
                                             <input type="number" name="priority" min="0" max="100" value="0"
                                                    class="w-20 px-2 py-1 border border-gray-300 rounded-md">
@@ -194,256 +229,286 @@ class ExtendedTourForm {
 
                                 <!-- Sorumlular -->
                                 <div class="bg-blue-50 p-4 rounded-lg">
-                                    <h5 class="font-medium text-gray-800 mb-3">👥 Sorumlu Kişiler</h5>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <h5 class="font-medium text-gray-800 mb-4">👥 Sorumlular</h5>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <!-- Havalimanı Sorumlusu -->
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">🛫 Havalimanı Sorumlusu</label>
-                                            <input type="text" name="airport_responsible_name" placeholder="Ad Soyad"
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md mb-2">
-                                            <input type="tel" name="airport_responsible_phone" placeholder="Telefon"
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                            <h6 class="text-sm font-medium text-gray-700 mb-2">Havalimanı Sorumlusu</h6>
+                                            <div class="space-y-2">
+                                                <input type="text" name="airport_responsible_name" placeholder="Ad Soyad"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                                <input type="tel" name="airport_responsible_phone" placeholder="Telefon"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
                                         </div>
+
+                                        <!-- Medine Sorumlusu -->
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">🕌 Medine Sorumlusu</label>
-                                            <input type="text" name="medine_responsible_name" placeholder="Ad Soyad"
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md mb-2">
-                                            <input type="tel" name="medine_responsible_phone" placeholder="Telefon"
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                            <h6 class="text-sm font-medium text-gray-700 mb-2">Medine Sorumlusu</h6>
+                                            <div class="space-y-2">
+                                                <input type="text" name="medine_responsible_name" placeholder="Ad Soyad"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                                <input type="tel" name="medine_responsible_phone" placeholder="Telefon"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
                                         </div>
+
+                                        <!-- Mekke Sorumlusu 1 -->
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">🕋 Mekke Sorumlular</label>
-                                            <input type="text" name="mekke_responsible1_name" placeholder="1. Sorumlu Ad"
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md mb-2">
-                                            <input type="tel" name="mekke_responsible1_phone" placeholder="1. Sorumlu Tel"
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md mb-2">
-                                            <input type="text" name="mekke_responsible2_name" placeholder="2. Sorumlu Ad"
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md mb-2">
-                                            <input type="tel" name="mekke_responsible2_phone" placeholder="2. Sorumlu Tel"
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                            <h6 class="text-sm font-medium text-gray-700 mb-2">Mekke Sorumlusu 1</h6>
+                                            <div class="space-y-2">
+                                                <input type="text" name="mekke_responsible1_name" placeholder="Ad Soyad"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                                <input type="tel" name="mekke_responsible1_phone" placeholder="Telefon"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
+                                        </div>
+
+                                        <!-- Mekke Sorumlusu 2 -->
+                                        <div>
+                                            <h6 class="text-sm font-medium text-gray-700 mb-2">Mekke Sorumlusu 2</h6>
+                                            <div class="space-y-2">
+                                                <input type="text" name="mekke_responsible2_name" placeholder="Ad Soyad"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                                <input type="tel" name="mekke_responsible2_phone" placeholder="Telefon"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Step 3: Otel Bilgileri -->
+                            <!-- Step 3: Oteller -->
                             <div id="step-hotels" class="step-content hidden">
                                 <h4 class="text-lg font-medium text-gray-900 mb-4">🏨 Otel Bilgileri</h4>
                                 
-                                <!-- Mekke Oteli -->
-                                <div class="bg-green-50 p-4 rounded-lg mb-6">
-                                    <h5 class="font-medium text-gray-800 mb-3">🕋 Mekke Oteli</h5>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Otel Adı</label>
-                                            <input type="text" name="mekke_hotel_name" 
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Bölge</label>
-                                            <select name="mekke_hotel_region" 
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
-                                                <option value="">Bölge Seçin</option>
-                                                <option value="Harem">Harem Bölgesi</option>
-                                                <option value="Aziziye">Aziziye Bölgesi</option>
-                                                <option value="Misfalah">Misfalah Bölgesi</option>
-                                                <option value="Marwa">Marwa Bölgesi</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Hareem'e Uzaklık (m)</label>
-                                            <input type="number" name="mekke_hotel_distance" min="0" 
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Yıldız Sayısı</label>
-                                            <select name="mekke_hotel_stars" 
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
-                                                <option value="">Seçin</option>
-                                                <option value="3">3 Yıldız</option>
-                                                <option value="4">4 Yıldız</option>
-                                                <option value="5">5 Yıldız</option>
-                                            </select>
-                                        </div>
-                                        <div class="md:col-span-2">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Adres</label>
-                                            <textarea name="mekke_hotel_address" rows="2"
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        </div>
-                                        <div class="md:col-span-2">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Otel Özellikleri</label>
-                                            <textarea name="mekke_hotel_features" rows="2" 
-                                                      placeholder="WiFi, Klima, Kahvaltı, vb..."
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    <!-- Mekke Oteli -->
+                                    <div class="bg-green-50 p-6 rounded-lg">
+                                        <h5 class="font-medium text-gray-800 mb-4 flex items-center">
+                                            🕋 Mekke Oteli
+                                        </h5>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Otel Adı</label>
+                                                <input type="text" name="mekke_hotel_name" 
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Adres</label>
+                                                <input type="text" name="mekke_hotel_address" 
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Bölge</label>
+                                                <select name="mekke_hotel_region" 
+                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                                    <option value="">Bölge Seçin</option>
+                                                    <option value="Ajyad">Ajyad</option>
+                                                    <option value="Aziziye">Aziziye</option>
+                                                    <option value="Misfalah">Misfalah</option>
+                                                    <option value="Shisha">Shisha</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Harem'e Mesafe (metre)</label>
+                                                <input type="number" name="mekke_hotel_distance" min="0" 
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Yıldız</label>
+                                                <select name="mekke_hotel_stars" 
+                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                                    <option value="">Yıldız Seçin</option>
+                                                    <option value="3">3 Yıldız</option>
+                                                    <option value="4">4 Yıldız</option>
+                                                    <option value="5">5 Yıldız</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Otel Özellikleri</label>
+                                                <textarea name="mekke_hotel_features" rows="3" placeholder="WiFi, Klima, 24 saat room service..."
+                                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Medine Oteli -->
-                                <div class="bg-blue-50 p-4 rounded-lg">
-                                    <h5 class="font-medium text-gray-800 mb-3">🕌 Medine Oteli</h5>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Otel Adı</label>
-                                            <input type="text" name="medine_hotel_name" 
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Bölge</label>
-                                            <select name="medine_hotel_region" 
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
-                                                <option value="">Bölge Seçin</option>
-                                                <option value="Harem">Harem Bölgesi</option>
-                                                <option value="Al-Qiblatain">Al-Qiblatain</option>
-                                                <option value="Quba">Quba Bölgesi</option>
-                                                <option value="Rawdah">Rawdah Bölgesi</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Hareem'e Uzaklık (m)</label>
-                                            <input type="number" name="medine_hotel_distance" min="0" 
-                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Yıldız Sayısı</label>
-                                            <select name="medine_hotel_stars" 
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
-                                                <option value="">Seçin</option>
-                                                <option value="3">3 Yıldız</option>
-                                                <option value="4">4 Yıldız</option>
-                                                <option value="5">5 Yıldız</option>
-                                            </select>
-                                        </div>
-                                        <div class="md:col-span-2">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Adres</label>
-                                            <textarea name="medine_hotel_address" rows="2"
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        </div>
-                                        <div class="md:col-span-2">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Otel Özellikleri</label>
-                                            <textarea name="medine_hotel_features" rows="2" 
-                                                      placeholder="WiFi, Klima, Kahvaltı, vb..."
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                    <!-- Medine Oteli -->
+                                    <div class="bg-blue-50 p-6 rounded-lg">
+                                        <h5 class="font-medium text-gray-800 mb-4 flex items-center">
+                                            🕌 Medine Oteli
+                                        </h5>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Otel Adı</label>
+                                                <input type="text" name="medine_hotel_name" 
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Adres</label>
+                                                <input type="text" name="medine_hotel_address" 
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Bölge</label>
+                                                <select name="medine_hotel_region" 
+                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                                    <option value="">Bölge Seçin</option>
+                                                    <option value="Haram Civarı">Haram Civarı</option>
+                                                    <option value="Merkez">Merkez</option>
+                                                    <option value="Quba">Quba</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Harem'e Mesafe (metre)</label>
+                                                <input type="number" name="medine_hotel_distance" min="0" 
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Yıldız</label>
+                                                <select name="medine_hotel_stars" 
+                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                                    <option value="">Yıldız Seçin</option>
+                                                    <option value="3">3 Yıldız</option>
+                                                    <option value="4">4 Yıldız</option>
+                                                    <option value="5">5 Yıldız</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Otel Özellikleri</label>
+                                                <textarea name="medine_hotel_features" rows="3" placeholder="WiFi, Klima, 24 saat room service..."
+                                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Step 4: Program ve Detaylar -->
+                            <!-- Step 4: Program -->
                             <div id="step-schedule" class="step-content hidden">
-                                <h4 class="text-lg font-medium text-gray-900 mb-4">📅 Program ve Detaylar</h4>
+                                <h4 class="text-lg font-medium text-gray-900 mb-4">📅 Program Detayları</h4>
                                 
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <!-- Sol kolon -->
-                                    <div class="space-y-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">✅ Dahil Olan Hizmetler</label>
-                                            <textarea name="included_services" rows="6" 
-                                                      placeholder="• Gidiş-dönüş uçak bileti&#10;• Otel konaklama&#10;• 3 öğün yemek&#10;• Vize işlemleri..."
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        </div>
-                                        
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">❌ Dahil Olmayan Hizmetler</label>
-                                            <textarea name="excluded_services" rows="4" 
-                                                      placeholder="• Kişisel harcamalar&#10;• Ekstra turlar&#10;• İçecekler..."
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        </div>
-
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">📋 Gerekli Evraklar</label>
-                                            <textarea name="required_documents" rows="4" 
-                                                      placeholder="• Pasaport (min 6 ay geçerli)&#10;• Vize başvuru formu&#10;• Fotoğraf (beyaz fon)..."
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        </div>
-                                    </div>
-
-                                    <!-- Sağ kolon -->
-                                    <div class="space-y-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">🏛️ Ziyaret Edilecek Yerler</label>
-                                            <textarea name="visit_places" rows="6" 
-                                                      placeholder="• Kâbe-i Şerif&#10;• Mescid-i Nebevi&#10;• Uhud Dağı&#10;• Sevr Mağarası..."
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        </div>
-
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">⭐ Ekstra Özellikler</label>
-                                            <textarea name="extra_features" rows="4" 
-                                                      placeholder="• Rehberli turlar&#10;• Özel transfer&#10;• Zamzam suyu..."
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        </div>
-
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">⚠️ Önemli Notlar</label>
-                                            <textarea name="important_notes" rows="4" 
-                                                      placeholder="• Çocuk indirimleri&#10;• Sağlık durumu bilgileri&#10;• İklim bilgileri..."
-                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-200">
+                                <div class="space-y-6">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">💰 Ödeme Şartları</label>
-                                        <textarea name="payment_terms" rows="4" 
-                                                  placeholder="• Kapora: %30&#10;• Ara ödeme: %40 (45 gün öncesi)&#10;• Kalan tutar: 15 gün öncesi..."
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Detaylı Açıklama</label>
+                                        <textarea name="description" rows="6" 
+                                                  placeholder="Turun detaylı açıklamasını buraya yazın..."
                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
                                     </div>
 
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Dahil Olan Hizmetler</label>
+                                            <textarea name="included_services" rows="8" 
+                                                      placeholder="• Otel konaklama&#10;• Uçak bileti (gidiş-dönüş)&#10;• Rehberlik hizmeti&#10;• Transfer hizmetleri&#10;• Vize işlemleri&#10;• Sigorta"
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Dahil Olmayan Hizmetler</label>
+                                            <textarea name="excluded_services" rows="8" 
+                                                      placeholder="• Kişisel harcamalar&#10;• Ekstra turlar&#10;• Fazla bagaj ücreti&#10;• Oda servisi&#10;• Kişisel sigorta&#10;• Ekstra yemekler"
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                        </div>
+                                    </div>
+
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">🚫 İptal Politikası</label>
-                                        <textarea name="cancellation_policy" rows="4" 
-                                                  placeholder="• 60 gün öncesi: %10 ceza&#10;• 30 gün öncesi: %30 ceza&#10;• 15 gün öncesi: %50 ceza..."
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Ziyaret Edilecek Yerler</label>
+                                        <textarea name="visit_places" rows="5" 
+                                                  placeholder="• Mescid-i Haram&#10;• Mescid-i Nebevi&#10;• Uhud Dağı&#10;• Kuba Camii&#10;• Jannetül Baki Mezarlığı"
+                                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Gerekli Belgeler</label>
+                                            <textarea name="required_documents" rows="4" 
+                                                      placeholder="• Pasaport (en az 6 ay geçerli)&#10;• Vize&#10;• Aşı kartı&#10;• Fotoğraflar"
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Ekstra Özellikler</label>
+                                            <textarea name="extra_features" rows="4" 
+                                                      placeholder="• Türkçe rehberlik&#10;• 24 saat iletişim&#10;• Grup büyüklüğü: 20-30 kişi&#10;• Özel aktiviteler"
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Ödeme Koşulları</label>
+                                            <textarea name="payment_terms" rows="4" 
+                                                      placeholder="• %30 kapora ile rezervasyon&#10;• Kalan tutar 30 gün öncesinde&#10;• Kredi kartı ile taksitlendirme&#10;• Banka havalesi kabul edilir"
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">İptal Koşulları</label>
+                                            <textarea name="cancellation_policy" rows="4" 
+                                                      placeholder="• 60 gün öncesi: %10 kesinti&#10;• 30 gün öncesi: %25 kesinti&#10;• 15 gün öncesi: %50 kesinti&#10;• Son dakika iptal: %100 kesinti"
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Önemli Notlar</label>
+                                        <textarea name="important_notes" rows="4" 
+                                                  placeholder="Tur öncesi bildirilmesi gereken önemli notlar..."
                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Step 5: SEO ve Medya -->
+                            <!-- Step 5: SEO & Medya -->
                             <div id="step-seo" class="step-content hidden">
-                                <h4 class="text-lg font-medium text-gray-900 mb-4">🔍 SEO ve Medya</h4>
+                                <h4 class="text-lg font-medium text-gray-900 mb-4">🔍 SEO & Medya Ayarları</h4>
                                 
-                                <div class="space-y-4">
+                                <div class="space-y-6">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">URL Slug</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">URL (Slug)</label>
                                         <input type="text" name="slug" 
-                                               placeholder="ornek-umre-turu-2025"
+                                               placeholder="umre-turu-2024-ekonomik" 
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
-                                        <small class="text-gray-500">Boş bırakılırsa başlıktan otomatik oluşturulur</small>
+                                        <p class="text-xs text-gray-500 mt-1">URL'de kullanılacak benzersiz isim (otomatik oluşturulur)</p>
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">SEO Anahtar Kelimeler</label>
-                                        <textarea name="seo_keywords" rows="2" 
-                                                  placeholder="umre turu, umre paketi, mekke medine, hac umre, 2025 umre"
-                                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        <small class="text-gray-500">Virgülle ayırarak yazın</small>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">SEO Anahtar Kelimeler</label>
+                                        <input type="text" name="seo_keywords" 
+                                               placeholder="umre, hac, tur, ziyaret, mekke, medine" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                        <p class="text-xs text-gray-500 mt-1">Virgülle ayırarak yazın</p>
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Meta Açıklama</label>
-                                        <textarea name="meta_description" rows="3" maxlength="160"
-                                                  placeholder="Konforlu ve ekonomik umre turu için hemen rezervasyon yaptırın..."
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Meta Açıklama</label>
+                                        <textarea name="meta_description" rows="3" maxlength="160" 
+                                                  placeholder="Arama motorlarında görünecek açıklama (160 karakter)"
                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary"></textarea>
-                                        <small class="text-gray-500">Maksimum 160 karakter (Google için ideal)</small>
+                                        <p class="text-xs text-gray-500 mt-1">Google'da görünecek açıklama</p>
                                     </div>
 
                                     <div class="bg-gray-50 p-4 rounded-lg">
-                                        <h5 class="font-medium text-gray-800 mb-3">📸 Medya Dosyaları</h5>
+                                        <h5 class="font-medium text-gray-800 mb-3">Gelişmiş Ayarlar</h5>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Ana Görsel</label>
-                                                <input type="file" name="main_image" accept="image/*"
-                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                                <small class="text-gray-500">Önerilen: 1200x600px, JPG/PNG</small>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Öncelik Sırası</label>
+                                                <input type="number" name="priority" min="0" max="100" value="0"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary">
+                                                <p class="text-xs text-gray-500 mt-1">Yüksek değer üstte görünür (0-100)</p>
                                             </div>
+                                        </div>
+                                    </div>
 
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Galeri Resimleri</label>
-                                                <input type="file" name="gallery_images" accept="image/*" multiple
-                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                                <small class="text-gray-500">Çoklu seçim yapabilirsiniz</small>
-                                            </div>
+                                    <div class="bg-blue-50 p-4 rounded-lg">
+                                        <h5 class="font-medium text-gray-800 mb-3">📱 Sosyal Medya Önizleme</h5>
+                                        <p class="text-sm text-gray-600 mb-3">Bu tur sosyal medyada şöyle görünecek:</p>
+                                        <div class="bg-white p-4 border rounded-lg">
+                                            <div class="font-medium text-gray-900 mb-1" id="preview-title">Tur Başlığı</div>
+                                            <div class="text-sm text-gray-600 mb-2" id="preview-description">Kısa açıklama burada görünecek...</div>
+                                            <div class="text-xs text-green-600" id="preview-url">nahletur.com/tur-adi</div>
                                         </div>
                                     </div>
                                 </div>
@@ -503,43 +568,59 @@ class ExtendedTourForm {
                         }">
                             ${isCompleted ? '✓' : step.icon}
                         </div>
-                        <div class="ml-2 hidden sm:block">
-                            <span class="text-xs font-medium ${
-                                isActive ? 'text-admin-primary' : 
-                                isCompleted ? 'text-green-600' : 'text-gray-500'
-                            }">${step.title}</span>
-                        </div>
+                        <span class="ml-2 text-sm font-medium hidden md:inline">${step.title}</span>
                     </div>
                     ${index < steps.length - 1 ? `
-                        <div class="flex-1 h-px bg-gray-300 mx-4 hidden sm:block"></div>
+                        <div class="flex-1 h-1 mx-4 ${isCompleted ? 'bg-green-500' : 'bg-gray-300'} rounded hidden md:block"></div>
                     ` : ''}
                 </div>
             `;
         }).join('');
     }
 
-    // Step navigation
+    // ✅ DÜZELTME: Next step fonksiyonu
     nextStep() {
+        // Mevcut adım verilerini kaydet
+        this.saveStepData();
+        
+        // Doğrulama
+        if (!this.validateCurrentStep()) {
+            return;
+        }
+
         if (this.currentStep < this.formSteps.length - 1) {
-            // Mevcut step'i validate et
-            if (this.validateCurrentStep()) {
-                this.currentStep++;
-                this.updateStepVisibility();
-                this.updateNavigationButtons();
-            }
+            this.currentStep++;
+            this.updateStepVisibility();
+            this.updateNavigationButtons();
+            this.updateProgressSteps();
+            
+            // Yeni adımın verilerini yükle
+            setTimeout(() => {
+                this.loadStepData();
+            }, 100);
         }
     }
 
+    // ✅ DÜZELTME: Previous step fonksiyonu
     prevStep() {
+        // Mevcut adım verilerini kaydet
+        this.saveStepData();
+        
         if (this.currentStep > 0) {
             this.currentStep--;
             this.updateStepVisibility();
             this.updateNavigationButtons();
+            this.updateProgressSteps();
+            
+            // Önceki adımın verilerini yükle
+            setTimeout(() => {
+                this.loadStepData();
+            }, 100);
         }
     }
 
     updateStepVisibility() {
-        // Tüm step'leri gizle
+        // Tüm adımları gizle
         this.formSteps.forEach(step => {
             const element = document.getElementById(`step-${step}`);
             if (element) {
@@ -547,13 +628,14 @@ class ExtendedTourForm {
             }
         });
 
-        // Aktif step'i göster
-        const activeStep = document.getElementById(`step-${this.formSteps[this.currentStep]}`);
-        if (activeStep) {
-            activeStep.classList.remove('hidden');
+        // Mevcut adımı göster
+        const currentElement = document.getElementById(`step-${this.formSteps[this.currentStep]}`);
+        if (currentElement) {
+            currentElement.classList.remove('hidden');
         }
+    }
 
-        // Progress bar'ı güncelle
+    updateProgressSteps() {
         const progressContainer = document.querySelector('.flex.items-center.justify-between');
         if (progressContainer) {
             progressContainer.innerHTML = this.renderProgressSteps();
@@ -583,13 +665,11 @@ class ExtendedTourForm {
     }
 
     validateCurrentStep() {
-        const currentStepName = this.formSteps[this.currentStep];
-        const stepElement = document.getElementById(`step-${currentStepName}`);
-        
-        if (!stepElement) return true;
+        const currentStepElement = document.getElementById(`step-${this.formSteps[this.currentStep]}`);
+        if (!currentStepElement) return true;
 
         // Required alanları kontrol et
-        const requiredFields = stepElement.querySelectorAll('[required]');
+        const requiredFields = currentStepElement.querySelectorAll('[required]');
         let isValid = true;
 
         requiredFields.forEach(field => {
@@ -647,71 +727,68 @@ class ExtendedTourForm {
         }, 3000);
     }
 
-    // Form verilerini topla
+    // ✅ DÜZELTME: Form verilerini topla - TAM VERSİYON
     collectFormData() {
-        const form = document.getElementById('tourForm');
-        const formData = new FormData(form);
-        const data = {};
+        // Son adımın verilerini de kaydet
+        this.saveStepData();
 
-        // Temel form verilerini al
-        for (let [key, value] of formData.entries()) {
-            data[key] = value;
-        }
-
+        // Form verilerini temizle ve düzenle
+        const cleanData = { ...this.formData };
+        
         // JSON formatına çevrilmesi gereken alanları düzenle
-        data.departure_info = {
-            airline: data.departure_airline || '',
-            departure_city: data.departure_city || 'İstanbul',
-            departure_airport: data.departure_airport || 'IST'
+        cleanData.departure_info = {
+            airline: cleanData.departure_airline || '',
+            departure_city: cleanData.departure_city || 'İstanbul',
+            departure_airport: cleanData.departure_airport || 'IST'
         };
 
-        data.return_info = {
-            airline: data.return_airline || '',
-            arrival_city: data.arrival_city || 'İstanbul', 
-            arrival_airport: data.arrival_airport || 'IST'
+        cleanData.return_info = {
+            airline: cleanData.return_airline || '',
+            arrival_city: cleanData.arrival_city || 'İstanbul', 
+            arrival_airport: cleanData.arrival_airport || 'IST'
         };
 
-        data.responsible_contacts = {
+        cleanData.responsible_contacts = {
             airport: {
-                name: data.airport_responsible_name || '',
-                phone: data.airport_responsible_phone || ''
+                name: cleanData.airport_responsible_name || '',
+                phone: cleanData.airport_responsible_phone || ''
             },
             medine: {
-                name: data.medine_responsible_name || '',
-                phone: data.medine_responsible_phone || ''
+                name: cleanData.medine_responsible_name || '',
+                phone: cleanData.medine_responsible_phone || ''
             },
             mekke: [
                 {
-                    name: data.mekke_responsible1_name || '',
-                    phone: data.mekke_responsible1_phone || ''
+                    name: cleanData.mekke_responsible1_name || '',
+                    phone: cleanData.mekke_responsible1_phone || ''
                 },
                 {
-                    name: data.mekke_responsible2_name || '',
-                    phone: data.mekke_responsible2_phone || ''
+                    name: cleanData.mekke_responsible2_name || '',
+                    phone: cleanData.mekke_responsible2_phone || ''
                 }
             ]
         };
 
-        data.mekke_hotel = {
-            name: data.mekke_hotel_name || '',
-            address: data.mekke_hotel_address || '',
-            region: data.mekke_hotel_region || '',
-            distance_to_haram: data.mekke_hotel_distance || 0,
-            stars: data.mekke_hotel_stars || '',
-            features: data.mekke_hotel_features || ''
+        cleanData.mekke_hotel = {
+            name: cleanData.mekke_hotel_name || '',
+            address: cleanData.mekke_hotel_address || '',
+            region: cleanData.mekke_hotel_region || '',
+            distance_to_haram: parseInt(cleanData.mekke_hotel_distance) || 0,
+            stars: cleanData.mekke_hotel_stars || '',
+            features: cleanData.mekke_hotel_features || ''
         };
 
-        data.medine_hotel = {
-            name: data.medine_hotel_name || '',
-            address: data.medine_hotel_address || '',
-            region: data.medine_hotel_region || '',
-            distance_to_haram: data.medine_hotel_distance || 0,
-            stars: data.medine_hotel_stars || '',
-            features: data.medine_hotel_features || ''
+        cleanData.medine_hotel = {
+            name: cleanData.medine_hotel_name || '',
+            address: cleanData.medine_hotel_address || '',
+            region: cleanData.medine_hotel_region || '',
+            distance_to_haram: parseInt(cleanData.medine_hotel_distance) || 0,
+            stars: cleanData.medine_hotel_stars || '',
+            features: cleanData.medine_hotel_features || ''
         };
 
         // Checkbox değerini düzelt
-        data.featured = form.elements.featured?.checked ? true : false;
+        cleanData.featured = Boolean(cleanData.featured);
 
         // Gereksiz alanları temizle
         const fieldsToRemove = [
@@ -727,9 +804,9 @@ class ExtendedTourForm {
             'medine_hotel_distance', 'medine_hotel_stars', 'medine_hotel_features'
         ];
 
-        fieldsToRemove.forEach(field => delete data[field]);
+        fieldsToRemove.forEach(field => delete cleanData[field]);
 
-        return data;
+        return cleanData;
     }
 
     // Form'u sıfırla
@@ -744,6 +821,7 @@ class ExtendedTourForm {
         
         this.updateStepVisibility();
         this.updateNavigationButtons();
+        this.updateProgressSteps();
     }
 
     // Kategorileri yükle
@@ -768,6 +846,11 @@ class ExtendedTourForm {
                         option.textContent = category.name;
                         categorySelect.appendChild(option);
                     });
+                    
+                    // Mevcut seçimi koru
+                    if (this.formData.category_id) {
+                        categorySelect.value = this.formData.category_id;
+                    }
                 }
             }
         } catch (error) {
@@ -775,87 +858,82 @@ class ExtendedTourForm {
         }
     }
 
-    // Mevcut tur verilerini form'a yükle
+    // ✅ DÜZELTME: Mevcut tur verilerini form'a yükle - TAM VERSİYON  
     populateForm(tour) {
-        const form = document.getElementById('tourForm');
-        if (!form || !tour) return;
-
-        // Temel alanları doldur
-        const basicFields = [
-            'title', 'category_id', 'status', 'duration_days', 'duration_nights',
-            'mekke_nights', 'medine_nights', 'start_date', 'end_date', 'price_try',
-            'quota', 'short_description', 'description', 'included_services',
-            'excluded_services', 'required_documents', 'visit_places', 'extra_features',
-            'important_notes', 'payment_terms', 'cancellation_policy', 'slug',
-            'seo_keywords', 'meta_description', 'priority'
-        ];
-
-        basicFields.forEach(field => {
-            const element = form.elements[field];
-            if (element && tour[field] !== undefined) {
-                element.value = tour[field] || '';
-            }
-        });
-
-        // Featured checkbox
-        if (form.elements.featured) {
-            form.elements.featured.checked = tour.featured || false;
+        if (!tour) return;
+        
+        console.log('📥 Tur verileri forma yükleniyor:', tour);
+        
+        // Tüm tur verilerini formData'ya kopyala
+        this.formData = { ...tour };
+        
+        // Kategori ID'sini ayarla
+        if (tour.Category && tour.Category.id) {
+            this.formData.category_id = tour.Category.id;
         }
 
-        // JSON alanları
+        // Boolean alanları düzelt
+        this.formData.featured = Boolean(tour.featured);
+        
+        // JSON alanlarını çöz
         if (tour.departure_info) {
             const dep = tour.departure_info;
-            if (form.elements.departure_airline) form.elements.departure_airline.value = dep.airline || '';
-            if (form.elements.departure_city) form.elements.departure_city.value = dep.departure_city || '';
-            if (form.elements.departure_airport) form.elements.departure_airport.value = dep.departure_airport || '';
+            this.formData.departure_airline = dep.airline || '';
+            this.formData.departure_city = dep.departure_city || 'İstanbul';
+            this.formData.departure_airport = dep.departure_airport || 'IST';
         }
 
         if (tour.return_info) {
             const ret = tour.return_info;
-            if (form.elements.return_airline) form.elements.return_airline.value = ret.airline || '';
-            if (form.elements.arrival_city) form.elements.arrival_city.value = ret.arrival_city || '';
-            if (form.elements.arrival_airport) form.elements.arrival_airport.value = ret.arrival_airport || '';
+            this.formData.return_airline = ret.airline || '';
+            this.formData.arrival_city = ret.arrival_city || 'İstanbul';
+            this.formData.arrival_airport = ret.arrival_airport || 'IST';
         }
 
         if (tour.responsible_contacts) {
             const contacts = tour.responsible_contacts;
             if (contacts.airport) {
-                if (form.elements.airport_responsible_name) form.elements.airport_responsible_name.value = contacts.airport.name || '';
-                if (form.elements.airport_responsible_phone) form.elements.airport_responsible_phone.value = contacts.airport.phone || '';
+                this.formData.airport_responsible_name = contacts.airport.name || '';
+                this.formData.airport_responsible_phone = contacts.airport.phone || '';
             }
             if (contacts.medine) {
-                if (form.elements.medine_responsible_name) form.elements.medine_responsible_name.value = contacts.medine.name || '';
-                if (form.elements.medine_responsible_phone) form.elements.medine_responsible_phone.value = contacts.medine.phone || '';
+                this.formData.medine_responsible_name = contacts.medine.name || '';
+                this.formData.medine_responsible_phone = contacts.medine.phone || '';
             }
             if (contacts.mekke && contacts.mekke.length > 0) {
-                if (form.elements.mekke_responsible1_name) form.elements.mekke_responsible1_name.value = contacts.mekke[0]?.name || '';
-                if (form.elements.mekke_responsible1_phone) form.elements.mekke_responsible1_phone.value = contacts.mekke[0]?.phone || '';
-                if (contacts.mekke[1]) {
-                    if (form.elements.mekke_responsible2_name) form.elements.mekke_responsible2_name.value = contacts.mekke[1]?.name || '';
-                    if (form.elements.mekke_responsible2_phone) form.elements.mekke_responsible2_phone.value = contacts.mekke[1]?.phone || '';
-                }
+                this.formData.mekke_responsible1_name = contacts.mekke[0]?.name || '';
+                this.formData.mekke_responsible1_phone = contacts.mekke[0]?.phone || '';
+                this.formData.mekke_responsible2_name = contacts.mekke[1]?.name || '';
+                this.formData.mekke_responsible2_phone = contacts.mekke[1]?.phone || '';
             }
         }
 
         if (tour.mekke_hotel) {
             const hotel = tour.mekke_hotel;
-            if (form.elements.mekke_hotel_name) form.elements.mekke_hotel_name.value = hotel.name || '';
-            if (form.elements.mekke_hotel_address) form.elements.mekke_hotel_address.value = hotel.address || '';
-            if (form.elements.mekke_hotel_region) form.elements.mekke_hotel_region.value = hotel.region || '';
-            if (form.elements.mekke_hotel_distance) form.elements.mekke_hotel_distance.value = hotel.distance_to_haram || '';
-            if (form.elements.mekke_hotel_stars) form.elements.mekke_hotel_stars.value = hotel.stars || '';
-            if (form.elements.mekke_hotel_features) form.elements.mekke_hotel_features.value = hotel.features || '';
+            this.formData.mekke_hotel_name = hotel.name || '';
+            this.formData.mekke_hotel_address = hotel.address || '';
+            this.formData.mekke_hotel_region = hotel.region || '';
+            this.formData.mekke_hotel_distance = hotel.distance_to_haram || '';
+            this.formData.mekke_hotel_stars = hotel.stars || '';
+            this.formData.mekke_hotel_features = hotel.features || '';
         }
 
         if (tour.medine_hotel) {
             const hotel = tour.medine_hotel;
-            if (form.elements.medine_hotel_name) form.elements.medine_hotel_name.value = hotel.name || '';
-            if (form.elements.medine_hotel_address) form.elements.medine_hotel_address.value = hotel.address || '';
-            if (form.elements.medine_hotel_region) form.elements.medine_hotel_region.value = hotel.region || '';
-            if (form.elements.medine_hotel_distance) form.elements.medine_hotel_distance.value = hotel.distance_to_haram || '';
-            if (form.elements.medine_hotel_stars) form.elements.medine_hotel_stars.value = hotel.stars || '';
-            if (form.elements.medine_hotel_features) form.elements.medine_hotel_features.value = hotel.features || '';
+            this.formData.medine_hotel_name = hotel.name || '';
+            this.formData.medine_hotel_address = hotel.address || '';
+            this.formData.medine_hotel_region = hotel.region || '';
+            this.formData.medine_hotel_distance = hotel.distance_to_haram || '';
+            this.formData.medine_hotel_stars = hotel.stars || '';
+            this.formData.medine_hotel_features = hotel.features || '';
         }
+        
+        console.log('✅ Form data hazırlandı:', this.formData);
+        
+        // İlk adımın verilerini yükle
+        setTimeout(() => {
+            this.loadStepData();
+        }, 100);
     }
 }
 
