@@ -1,10 +1,12 @@
-// server.js - SEO Sayfaları için güncellenmiş routing
+// server.js - TUR DETAY ROUTE'LARI EKLENMİŞ VERSİYON
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
+const multer = require('multer');
+const fs = require('fs');
 require('dotenv').config();
 
 // Database ve modeller
@@ -37,6 +39,55 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// ✅ DÜZELTME: Uploads dizinini oluştur
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// ✅ DÜZELTME: Multer yapılandırması - Resim yükleme
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        let uploadPath = path.join(__dirname, 'uploads');
+        
+        // Upload tipine göre klasör belirle
+        if (req.route.path.includes('tour-image')) {
+            uploadPath = path.join(uploadPath, 'tours');
+        } else if (req.route.path.includes('hotel-images')) {
+            uploadPath = path.join(uploadPath, 'hotels');
+        }
+        
+        // Klasörü oluştur
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        // Dosya adını oluştur: timestamp-originalname
+        const timestamp = Date.now();
+        const ext = path.extname(file.originalname);
+        const name = path.basename(file.originalname, ext);
+        cb(null, `${timestamp}-${name}${ext}`);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: function (req, file, cb) {
+        // Sadece resim dosyalarına izin ver
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Sadece resim dosyaları yüklenebilir!'), false);
+        }
+    }
+});
+
 // Static dosyalar
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/js", express.static(path.join(__dirname, "public/js")));
@@ -45,6 +96,101 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use('/api', require('./routes/api'));
+
+// ✅ YENİ: Resim yükleme endpoint'leri
+app.post('/api/admin/upload/tour-image/:tourId', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Resim dosyası bulunamadı'
+            });
+        }
+
+        const tourId = req.params.tourId;
+        const imageUrl = `/uploads/tours/${req.file.filename}`;
+
+        // Tur bilgisini güncelle
+        const tour = await Tour.findByPk(tourId);
+        if (!tour) {
+            return res.status(404).json({
+                success: false,
+                message: 'Tur bulunamadı'
+            });
+        }
+
+        await tour.update({ image_url: imageUrl });
+
+        res.json({
+            success: true,
+            message: 'Resim başarıyla yüklendi',
+            data: {
+                imageUrl,
+                filename: req.file.filename
+            }
+        });
+    } catch (error) {
+        console.error('❌ Image upload error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Resim yüklenirken hata oluştu'
+        });
+    }
+});
+
+app.post('/api/admin/upload/hotel-images/:tourId', upload.array('images', 5), async (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Resim dosyası bulunamadı'
+            });
+        }
+
+        const tourId = req.params.tourId;
+        const hotelType = req.body.hotel_type; // 'mekke' or 'medine'
+
+        const tour = await Tour.findByPk(tourId);
+        if (!tour) {
+            return res.status(404).json({
+                success: false,
+                message: 'Tur bulunamadı'
+            });
+        }
+
+        // Yüklenen resimlerin URL'lerini oluştur
+        const imageUrls = req.files.map(file => `/uploads/hotels/${file.filename}`);
+
+        // Tour'un hotel_images JSON'ını güncelle
+        let hotelImages = tour.hotel_images || {};
+        if (typeof hotelImages === 'string') {
+            hotelImages = JSON.parse(hotelImages);
+        }
+
+        if (!hotelImages[hotelType]) {
+            hotelImages[hotelType] = [];
+        }
+
+        hotelImages[hotelType].push(...imageUrls);
+
+        await tour.update({ hotel_images: hotelImages });
+
+        res.json({
+            success: true,
+            message: `${hotelType} otel resimleri başarıyla yüklendi`,
+            data: {
+                imageUrls,
+                hotelType
+            }
+        });
+    } catch (error) {
+        console.error('❌ Hotel images upload error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Otel resimleri yüklenirken hata oluştu'
+        });
+    }
+});
 
 // ✅ YENİ: SEO Sayfaları için routes
 app.get('/', (req, res) => {
@@ -65,6 +211,11 @@ app.get('/hakkimizda', (req, res) => {
 
 app.get('/iletisim', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'iletisim.html'));
+});
+
+// ✅ YENİ: Tur detay sayfası route'u
+app.get('/tur/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'tour-detail.html'));
 });
 
 // Admin paneli
@@ -114,32 +265,31 @@ app.get('/sitemap.xml', (req, res) => {
         <loc>https://nahletur.com/iletisim</loc>
         <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
+        <priority>0.6</priority>
     </url>
 </urlset>`;
     res.send(sitemap);
 });
 
-// ✅ YENİ: robots.txt
-app.get('/robots.txt', (req, res) => {
-    res.type('text/plain');
-    const robots = `User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /api/
-
-Sitemap: https://nahletur.com/sitemap.xml`;
-    res.send(robots);
-});
-
-// 404 handler - Ana sayfaya yönlendir
+// 404 handler
 app.get('*', (req, res) => {
     res.status(404).sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 // Error handler
 app.use((error, req, res, next) => {
-    console.error('Error:', error);
+    console.error('Server Error:', error);
+    
+    // Multer hatalarını yakala
+    if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                success: false,
+                message: 'Dosya boyutu çok büyük (max 5MB)'
+            });
+        }
+    }
+    
     res.status(500).json({
         success: false,
         message: process.env.NODE_ENV === 'production' 
@@ -148,149 +298,42 @@ app.use((error, req, res, next) => {
     });
 });
 
-// Database setup fonksiyonu
-const setupDatabase = async () => {
-    try {
-        console.log('🔄 Database setup başlatılıyor...');
-        
-        // Sync database
-        await sequelize.sync({ alter: true });
-        
-        console.log('✅ Database synchronized!');
-        
-        // Check if admin user exists
-        const adminCount = await AdminUser.count();
-        if (adminCount === 0) {
-            // Create default data
-            await AdminUser.create({
-                username: 'admin',
-                email: 'admin@nahletur.com',
-                password_hash: 'admin123',
-                full_name: 'Sistem Yöneticisi',
-                role: 'super_admin'
-            });
-            
-            const hacCategory = await Category.create({
-                name: 'Hac Turları',
-                slug: 'hac-turlari',
-                description: 'Mübarek Hac ibadeti için organize edilen turlar'
-            });
-            
-            const umreCategory = await Category.create({
-                name: 'Umre Turları',
-                slug: 'umre-turlari', 
-                description: 'Yıl boyunca düzenlenen Umre ziyaret programları'
-            });
-            
-            await Tour.bulkCreate([
-                {
-                    category_id: hacCategory.id,
-                    title: 'Ekonomik Hac Paketi 2025',
-                    slug: 'ekonomik-hac-paketi-2025',
-                    description: 'Uygun fiyatlarla Hac ibadeti imkanı.',
-                    short_description: '15 günlük program, 3-4 kişilik odalar',
-                    duration_days: 15,
-                    price_try: 45000,
-                    quota: 40,
-                    available_quota: 25
-                },
-                {
-                    category_id: umreCategory.id,
-                    title: 'Lüks Umre Paketi',
-                    slug: 'luks-umre-paketi',
-                    description: '10 günlük lüks Umre deneyimi.',
-                    short_description: '10 gün 9 gece, 5 yıldızlı otel',
-                    duration_days: 10,
-                    price_try: 15000,
-                    quota: 25,
-                    available_quota: 20
-                }
-            ]);
-            
-            console.log('✅ Demo data created successfully!');
-        } else {
-            console.log('✅ Admin kullanıcısı zaten mevcut');
-        }
-        
-    } catch (error) {
-        console.error('❌ Database setup failed:', error);
-        throw error;
-    }
-};
-
-// Server başlatma
-const startServer = async () => {
+// Database connection and server start
+async function startServer() {
     try {
         // Database bağlantısını test et
         await testConnection();
+        console.log('✅ Database bağlantısı başarılı');
         
-        // Database setup
-        await setupDatabase();
-        
-        // Views klasörünü oluştur
-        const viewsDir = path.join(__dirname, 'views');
-        if (!require('fs').existsSync(viewsDir)) {
-            require('fs').mkdirSync(viewsDir, { recursive: true });
-        }
+        // Modelleri senkronize et
+        await sequelize.sync({ alter: false });
+        console.log('✅ Database modelleri senkronize edildi');
         
         // Server'ı başlat
-        const server = app.listen(PORT, '0.0.0.0', () => {
-            console.log('\n🚀 NAHLETUR.COM SERVER BAŞLATILDI');
-            console.log('=====================================');
-            console.log(`📱 Ana Sayfa: http://localhost:${PORT}`);
-            console.log(`🕌 Umre Turları: http://localhost:${PORT}/umre-turlari`);
-            console.log(`🕌 Hac Turları: http://localhost:${PORT}/hac-turlari`);
-            console.log(`ℹ️  Hakkımızda: http://localhost:${PORT}/hakkimizda`);
-            console.log(`📞 İletişim: http://localhost:${PORT}/iletisim`);
-            console.log(`⚙️  Admin Panel: http://localhost:${PORT}/admin`);
-            console.log(`🔌 API: http://localhost:${PORT}/api`);
-            console.log('\n👤 ADMIN GİRİŞ BİLGİLERİ:');
-            console.log('   Kullanıcı adı: admin');
-            console.log('   Şifre: admin123');
-            console.log('=====================================\n');
-        });
-        
-        // Server error handling
-        server.on('error', (error) => {
-            console.error('❌ Server error:', error);
+        app.listen(PORT, () => {
+            console.log(`🚀 Server çalışıyor: http://localhost:${PORT}`);
+            console.log(`📁 Admin panel: http://localhost:${PORT}/admin`);
+            console.log(`📂 Uploads: ${path.join(__dirname, 'uploads')}`);
         });
         
     } catch (error) {
-        console.error('❌ Server startup failed:', error);
+        console.error('❌ Server başlatma hatası:', error);
         process.exit(1);
     }
-};
+}
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-    console.log('🔄 SIGTERM received, shutting down gracefully');
-    try {
-        await sequelize.close();
-    } catch (error) {
-        console.error('Error closing database:', error);
-    }
+    console.log('🛑 SIGTERM alındı, server kapatılıyor...');
+    await sequelize.close();
     process.exit(0);
 });
 
 process.on('SIGINT', async () => {
-    console.log('🔄 SIGINT received, shutting down gracefully');
-    try {
-        await sequelize.close();
-    } catch (error) {
-        console.error('Error closing database:', error);
-    }
+    console.log('🛑 SIGINT alındı, server kapatılıyor...');
+    await sequelize.close();
     process.exit(0);
 });
 
-// Uncaught exception handler
-process.on('uncaughtException', (error) => {
-    console.error('💥 Uncaught Exception:', error);
-    process.exit(1);
-});
-
-process.on('unhandledRejection', (error) => {
-    console.error('💥 Unhandled Rejection:', error);
-    process.exit(1);
-});
-
+// Server'ı başlat
 startServer();
