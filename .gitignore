@@ -1,7 +1,12 @@
 node_modules/
 .env
+.env.local
+.env.production
+uploads/
 *.log
 .DS_Store
-uploads/
+Thumbs.db
 .vscode/
-package-lock.json
+.idea/
+tmp/
+temp/
