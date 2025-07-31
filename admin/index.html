@@ -3,923 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Nahletur.com</title>
+    <title>Nahletur Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'admin-primary': '#a8145b',
-                        'admin-secondary': '#8b1249',
-                        'admin-accent': '#d946ef',
-                        'admin-light': '#fdf2f8',
-                        'admin-dark': '#701a75'
+                        'admin-primary': 'rgb(37, 150, 190)',
+                        'admin-secondary': 'rgb(45, 125, 170)',
+                        'admin-light': 'rgb(230, 245, 250)',
                     }
                 }
             }
         }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/admin/css/admin.css">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .gradient-bg { background: linear-gradient(135deg, #a8145b 0%, #8b1249 100%); }
-        
-        /* ✅ DÜZELTME: Section visibility */
-        .section-content {
-            display: none;
-        }
-        .section-content.active {
-            display: block !important;
-        }
-        
-        /* ✅ DÜZELTME: Sidebar links */
-        .sidebar-link {
-            display: flex !important;
-            align-items: center;
-            padding: 12px 16px;
-            color: #e5e7eb;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s;
-            cursor: pointer;
-            margin-bottom: 4px;
-        }
-        
-        .sidebar-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-        
-        .sidebar-link-active {
-            background-color: rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
-            font-weight: 600;
-        }
-        
-        /* Mobile responsiveness */
-        @media (max-width: 1024px) {
-            #sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-            #sidebar.translate-x-0 {
-                transform: translateX(0);
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/admin.css?v=3">
 </head>
-<body class="bg-gray-100">
-    <!-- ✅ LOGIN SCREEN -->
-    <div id="loginScreen" class="min-h-screen flex items-center justify-center gradient-bg py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-8">
+<body class="bg-gray-50">
+    
+    <!-- Login Screen -->
+    <div id="loginSection" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-admin-primary to-admin-secondary">
+        <div class="max-w-md w-full space-y-8 p-8">
             <div class="text-center">
-                <h1 class="text-4xl font-bold text-white mb-2">Nahletur.com</h1>
-                <h2 class="text-xl text-pink-100 mb-8">Admin Paneli</h2>
-                <div class="bg-white rounded-lg shadow-xl p-8">
-                    <form id="loginForm" class="space-y-6">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 bg-admin-light rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8 text-admin-primary" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-800">Giriş Yapın</h3>
-                        </div>
-                        
-                        <div id="loginError" class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                            Geçersiz kullanıcı adı veya şifre
-                        </div>
-                        
-                        <div>
-                            <label for="login" class="block text-sm font-medium text-gray-700 mb-1">Kullanıcı Adı</label>
-                            <input 
-                                type="text" 
-                                id="login" 
-                                name="login" 
-                                required 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                placeholder="Kullanıcı adınızı girin"
-                            >
-                        </div>
-                        
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password" 
-                                required 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                placeholder="Şifrenizi girin"
-                            >
-                        </div>
-                        
-                        <button 
-                            type="submit" 
-                            id="loginButton"
-                            class="w-full bg-admin-primary text-white py-2 px-4 rounded-md hover:bg-admin-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-admin-primary focus:ring-offset-2"
-                        >
-                            <span id="loginButtonText">Giriş Yap</span>
-                            <div id="loginSpinner" class="hidden animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-2"></div>
-                        </button>
-                    </form>
-                </div>
+                <h2 class="text-3xl font-bold text-white mb-2">Nahletur</h2>
+                <p class="text-blue-100">Admin Panel Giriş</p>
             </div>
-        </div>
-    </div>
-
-    <!-- ✅ MAIN DASHBOARD -->
-    <div id="mainScreen" class="hidden min-h-screen bg-gray-100">
-        <!-- Top Navigation -->
-        <nav class="bg-white shadow-sm border-b sticky top-0 z-30">
-            <div class="flex justify-between items-center px-6 py-3">
-                <div class="flex items-center">
-                    <!-- Mobile Menu Button -->
-                    <button id="mobileMenuBtn" class="lg:hidden mr-3 p-2 rounded-md text-gray-500 hover:bg-gray-100">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                    <h1 id="pageTitle" class="text-xl font-semibold text-gray-800">Dashboard</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-600">Hoş geldiniz, Admin</span>
-                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors text-sm">
-                        Çıkış Yap
-                    </button>
-                </div>
-            </div>
-        </nav>
-
-        <div class="flex">
-            <!-- ✅ SIDEBAR -->
-            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-64 bg-gray-800 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
-                <div class="flex flex-col h-full">
-                    <!-- Logo -->
-                    <div class="flex items-center px-6 py-4 bg-admin-primary">
-                        <h2 class="text-white text-lg font-bold">Nahletur Admin</h2>
-                    </div>
-                    
-                    <!-- Navigation Menu -->
-                    <nav class="flex-1 px-4 py-6 space-y-2">
-                        <a href="#" class="sidebar-link sidebar-link-active" data-section="dashboard" onclick="showSection('dashboard')">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                            </svg>
-                            <span>Dashboard</span>
-                        </a>
-                        
-                        <a href="#" class="sidebar-link" data-section="tours" onclick="showSection('tours')">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Tur Yönetimi</span>
-                        </a>
-                        
-                        <a href="#" class="sidebar-link" data-section="categories" onclick="showSection('categories')">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm6 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V4zm-6 8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4zm6 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Kategoriler</span>
-                        </a>
-                        
-                        <a href="#" class="sidebar-link" data-section="messages" onclick="showSection('messages')">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Mesajlar</span>
-                        </a>
-                        
-                        <a href="#" class="sidebar-link" data-section="settings" onclick="showSection('settings')">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Ayarlar</span>
-                        </a>
-                    </nav>
-                </div>
-            </aside>
-
-            <!-- ✅ MAIN CONTENT -->
-            <main class="flex-1 lg:ml-0">
-                <div class="p-6">
-                    <!-- ✅ DASHBOARD SECTION -->
-                    <div id="dashboardSection" class="section-content active">
-                        <div id="dashboardContent">
-                            <div class="text-center py-8">
-                                <div class="animate-spin w-8 h-8 border-4 border-admin-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                                <p class="text-gray-500">Dashboard yükleniyor...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ✅ TOURS SECTION -->
-                    <div id="toursSection" class="section-content">
-                        <div id="toursContent">
-                            <div class="text-center py-8">
-                                <div class="animate-spin w-8 h-8 border-4 border-admin-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                                <p class="text-gray-500">Turlar yükleniyor...</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- ✅ CATEGORIES SECTION -->
-                    <div id="categoriesSection" class="section-content">
-                        <div class="bg-white rounded-xl shadow-sm border p-6">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Kategori Yönetimi</h3>
-                            <p class="text-gray-600">Kategori yönetimi sayfası yakında gelecek...</p>
-                        </div>
-                    </div>
-                    
-                    <!-- ✅ MESSAGES SECTION -->
-                    <div id="messagesSection" class="section-content">
-                        <div id="messagesContent">
-                            <div class="text-center py-8">
-                                <div class="animate-spin w-8 h-8 border-4 border-admin-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                                <p class="text-gray-500">Mesajlar yükleniyor...</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- ✅ SETTINGS SECTION -->
-                    <div id="settingsSection" class="section-content">
-                        <div class="bg-white rounded-xl shadow-sm border p-6">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Site Ayarları</h3>
-                            <p class="text-gray-600">Site ayarları sayfası yakında gelecek...</p>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- ✅ MOBILE SIDEBAR OVERLAY -->
-    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden hidden"></div>
-
-    <!-- ✅ JAVASCRIPT FILES -->
-    <script src="/admin/js/auth.js"></script>
-    <script src="/admin/js/dashboard.js"></script>
-    <script src="/admin/js/messages.js"></script>
-    <script src="/admin/js/tours.js"></script>
-    <script src="/admin/js/tour-form-handler.js"></script>
-    
-    <!-- ✅ MAIN APP SCRIPT -->
-    <script>
-        // ✅ DÜZELTME: Global Functions
-        function showSection(sectionName) {
-            console.log('📍 Section değiştiriliyor:', sectionName);
             
-            // Hide all sections
-            document.querySelectorAll('.section-content').forEach(function(section) {
-                section.classList.remove('active');
-            });
-            
-            // Show target section
-            const targetSection = document.getElementById(sectionName + 'Section');
-            if (targetSection) {
-                targetSection.classList.add('active');
-            }
-            
-            // Update sidebar active state
-            document.querySelectorAll('.sidebar-link').forEach(function(link) {
-                link.classList.remove('sidebar-link-active');
-                if (link.dataset.section === sectionName) {
-                    link.classList.add('sidebar-link-active');
-                }
-            });
-            
-            // Update page title
-            const titles = {
-                'dashboard': 'Dashboard',
-                'tours': 'Tur Yönetimi',
-                'categories': 'Kategori Yönetimi',
-                'messages': 'Mesaj Yönetimi',
-                'settings': 'Site Ayarları'
-            };
-            
-            const pageTitle = document.getElementById('pageTitle');
-            if (pageTitle) {
-                pageTitle.textContent = titles[sectionName] || 'Admin Panel';
-            }
-            
-            // Load section data with delay
-            setTimeout(function() {
-                loadSectionData(sectionName);
-            }, 200);
-            
-            // Close mobile menu
-            closeMobileMenu();
-        }
-
-        // ✅ DÜZELTME: Load section data
-        function loadSectionData(sectionName) {
-            console.log('📊 Section data yükleniyor:', sectionName);
-            
-            try {
-                if (sectionName === 'dashboard' && window.dashboardManager) {
-                    dashboardManager.loadDashboardData();
-                } else if (sectionName === 'tours' && window.toursManager) {
-                    toursManager.loadTours();
-                } else if (sectionName === 'messages' && window.messagesManager) {
-                    messagesManager.loadMessages();
-                }
-            } catch (error) {
-                console.error('❌ Section data yükleme hatası:', error);
-            }
-        }
-
-        // ✅ DÜZELTME: Mobile menu functions
-        function toggleMobileMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            
-            if (sidebar && overlay) {
-                sidebar.classList.toggle('translate-x-0');
-                overlay.classList.toggle('hidden');
-            }
-        }
-
-        function closeMobileMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            
-            if (sidebar && overlay) {
-                sidebar.classList.remove('translate-x-0');
-                overlay.classList.add('hidden');
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('authToken');
-            location.reload();
-        }
-
-        // ✅ DÜZELTME: Auth check on load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Admin panel başlatılıyor...');
-            
-            const token = localStorage.getItem('authToken');
-            const loginScreen = document.getElementById('loginScreen');
-            const mainScreen = document.getElementById('mainScreen');
-            
-            if (token) {
-                // Token varsa main screen'i göster
-                loginScreen.classList.add('hidden');
-                mainScreen.classList.remove('hidden');
-                
-                // Dashboard'u yükle
-                setTimeout(function() {
-                    if (window.dashboardManager) {
-                        dashboardManager.loadDashboardData();
-                    }
-                }, 500);
-            } else {
-                // Token yoksa login screen'i göster
-                loginScreen.classList.remove('hidden');
-                mainScreen.classList.add('hidden');
-            }
-            
-            // Login form submit
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(e.target);
-                    const loginButton = document.getElementById('loginButton');
-                    const loginButtonText = document.getElementById('loginButtonText');
-                    const loginSpinner = document.getElementById('loginSpinner');
-                    const loginError = document.getElementById('loginError');
-                    
-                    // Loading state
-                    loginButton.disabled = true;
-                    loginButtonText.textContent = 'Giriş yapılıyor...';
-                    loginSpinner.classList.remove('hidden');
-                    loginError.classList.add('hidden');
-                    
-                    try {
-                        const response = await fetch('/api/admin/login', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                login: formData.get('login'),
-                                password: formData.get('password')
-                            })
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (data.success && data.data.token) {
-                            localStorage.setItem('authToken', data.data.token);
-                            location.reload();
-                        } else {
-                            loginError.classList.remove('hidden');
-                            loginError.textContent = data.message || 'Giriş başarısız';
-                        }
-                    } catch (error) {
-                        console.error('Login error:', error);
-                        loginError.classList.remove('hidden');
-                        loginError.textContent = 'Bağlantı hatası';
-                    } finally {
-                        // Reset loading state
-                        loginButton.disabled = false;
-                        loginButtonText.textContent = 'Giriş Yap';
-                        loginSpinner.classList.add('hidden');
-                    }
-                });
-            }
-        });
-    </script>
-    <script src="/admin/js/app.js"></script>
-    
-    <!-- ✅ GELİŞMİŞ TUR FORMU MODAL -->
-<div id="tourFormModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            
-            <!-- ✅ MODAL HEADER -->
-            <div class="flex justify-between items-center p-6 border-b">
-                <h2 id="tourFormTitle" class="text-2xl font-bold text-gray-900">Yeni Tur Ekle</h2>
-                <button onclick="closeTourForm()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- ✅ FORM CONTENT -->
-            <form id="tourForm" class="p-6 space-y-8">
-                
-                <!-- ✅ 1. TEMEL BİLGİLER -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">1</span>
-                        Temel Bilgiler
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="md:col-span-2">
-                            <label for="tourTitle" class="block text-sm font-medium text-gray-700 mb-2">Tur Başlığı *</label>
-                            <input type="text" id="tourTitle" name="title" required 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="örn: 9 Gece 10 Gün Ekonomik Umre Turları">
-                        </div>
-                        
-                        <div>
-                            <label for="tourCategory" class="block text-sm font-medium text-gray-700 mb-2">Kategori *</label>
-                            <select id="tourCategory" name="category_id" required 
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
-                                <option value="">Kategori Seçin</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label for="tourStatus" class="block text-sm font-medium text-gray-700 mb-2">Durum</label>
-                            <select id="tourStatus" name="status"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
-                                <option value="active">Aktif</option>
-                                <option value="inactive">Pasif</option>
-                                <option value="full">Dolu</option>
-                                <option value="completed">Tamamlandı</option>
-                            </select>
-                        </div>
-                        
-                        <div class="md:col-span-2">
-                            <label for="tourShortDescription" class="block text-sm font-medium text-gray-700 mb-2">Kısa Açıklama</label>
-                            <textarea id="tourShortDescription" name="short_description" rows="2"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="Tura dair kısa bir açıklama yazın..."></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ✅ 2. TARİH VE SÜRE BİLGİLERİ -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">2</span>
-                        Tarih ve Süre
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label for="tourStartDate" class="block text-sm font-medium text-gray-700 mb-2">Başlangıç Tarihi</label>
-                            <input type="date" id="tourStartDate" name="start_date"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
-                        </div>
-                        
-                        <div>
-                            <label for="tourEndDate" class="block text-sm font-medium text-gray-700 mb-2">Bitiş Tarihi</label>
-                            <input type="date" id="tourEndDate" name="end_date"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
-                        </div>
-                        
-                        <div>
-                            <label for="tourDurationDays" class="block text-sm font-medium text-gray-700 mb-2">Süre (Gün) *</label>
-                            <input type="number" id="tourDurationDays" name="duration_days" required min="1"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="10">
-                        </div>
-                        
-                        <div>
-                            <label for="tourDurationNights" class="block text-sm font-medium text-gray-700 mb-2">Süre (Gece)</label>
-                            <input type="number" id="tourDurationNights" name="duration_nights" min="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="9">
-                        </div>
-                        
-                        <div>
-                            <label for="tourMekkeNights" class="block text-sm font-medium text-gray-700 mb-2">Mekke (Gece)</label>
-                            <input type="number" id="tourMekkeNights" name="mekke_nights" min="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="6">
-                        </div>
-                        
-                        <div>
-                            <label for="tourMedineNights" class="block text-sm font-medium text-gray-700 mb-2">Medine (Gece)</label>
-                            <input type="number" id="tourMedineNights" name="medine_nights" min="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="3">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ✅ 3. FİYAT VE KOTA -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">3</span>
-                        Fiyat ve Kota
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="tourPriceTry" class="block text-sm font-medium text-gray-700 mb-2">Fiyat (TL) *</label>
-                            <input type="number" id="tourPriceTry" name="price_try" required min="0" step="0.01"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="25000">
-                        </div>
-                        
-                        <div>
-                            <label for="tourQuota" class="block text-sm font-medium text-gray-700 mb-2">Kota (Kişi) *</label>
-                            <input type="number" id="tourQuota" name="quota" required min="1"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="40">
-                        </div>
-                        
-                        <div>
-                            <label for="tourAvailableQuota" class="block text-sm font-medium text-gray-700 mb-2">Müsait Kota</label>
-                            <input type="number" id="tourAvailableQuota" name="available_quota" min="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="35">
-                        </div>
-                        
-                        <div class="flex items-center">
-                            <input type="checkbox" id="tourFeatured" name="featured" class="mr-2">
-                            <label for="tourFeatured" class="text-sm font-medium text-gray-700">Öne Çıkarılsın</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ✅ 4. OTEL BİLGİLERİ -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">4</span>
-                        Otel Bilgileri
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="tourMekkeHotel" class="block text-sm font-medium text-gray-700 mb-2">Mekke Oteli</label>
-                            <input type="text" id="tourMekkeHotel" name="mekke_hotel"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="Enwar Asil vb.">
-                            <p class="text-xs text-gray-500 mt-1">Otel adı ve Harem-i Şerif'e uzaklık</p>
-                        </div>
-                        
-                        <div>
-                            <label for="tourMedineHotel" class="block text-sm font-medium text-gray-700 mb-2">Medine Oteli</label>
-                            <input type="text" id="tourMedineHotel" name="medine_hotel"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="Merkeziye Otel">
-                            <p class="text-xs text-gray-500 mt-1">Otel adı ve Mescid-i Nebevi'ye uzaklık</p>
-                        </div>
-                        
-                        <div>
-                            <label for="mekkeHotelImages" class="block text-sm font-medium text-gray-700 mb-2">Mekke Otel Resimleri</label>
-                            <input type="file" id="mekkeHotelImages" accept="image/*" multiple
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
-                            <div id="mekkeHotelPreview" class="grid grid-cols-3 gap-2 mt-2"></div>
-                        </div>
-                        
-                        <div>
-                            <label for="medineHotelImages" class="block text-sm font-medium text-gray-700 mb-2">Medine Otel Resimleri</label>
-                            <input type="file" id="medineHotelImages" accept="image/*" multiple
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
-                            <div id="medineHotelPreview" class="grid grid-cols-3 gap-2 mt-2"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ✅ 5. HİZMETLER -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-indigo-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">5</span>
-                        Hizmet Detayları
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="tourIncludedServices" class="block text-sm font-medium text-gray-700 mb-2">Ücrete Dahil Olanlar</label>
-                            <textarea id="tourIncludedServices" name="included_services" rows="6"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="• Umre Rehber Kitapçığı&#10;• Üçlü Çanta Seti&#10;• Lüks Otobüslerle Tüm Transferler&#10;• Konaklama&#10;• Seyahat sağlık sigortası&#10;• Vize&#10;• Diyanet kartı&#10;• Rehberlik hizmetleri&#10;• 3 öğün yemek"></textarea>
-                        </div>
-                        
-                        <div>
-                            <label for="tourExcludedServices" class="block text-sm font-medium text-gray-700 mb-2">Ücrete Dahil Olmayanlar</label>
-                            <textarea id="tourExcludedServices" name="excluded_services" rows="6"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="• Havalimanı Ulaşım&#10;• Yurt Dışı Çıkış Harcı 500 TL&#10;• Özel Ulaşım Ücretleri&#10;• Özel Tüketim Malzemeleri&#10;• Ekstra Harcamalar"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ✅ 6. ZİYARET YERLERİ VE PROGRAM -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-teal-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">6</span>
-                        Ziyaret Yerleri ve Program
-                    </h3>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <label for="tourVisitPlaces" class="block text-sm font-medium text-gray-700 mb-2">Ziyaret Edilecek Yerler</label>
-                            <textarea id="tourVisitPlaces" name="visit_places" rows="4"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="• Muzdelife Gezisi&#10;• Hira Mağrası Gezisi&#10;• Uhud Gezisi&#10;• Bedir Kuyuları Gezisi&#10;• Sevr Dağı&#10;• Arafat&#10;• Mina&#10;• Cennetül Mualla&#10;• Cin Mescidi&#10;• Fetih Mescidi&#10;• Ağaç Mescidi"></textarea>
-                        </div>
-                        
-                        <!-- Günlük Program -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Günlük Program</label>
-                            <div id="dailyProgramContainer" class="border border-gray-300 rounded-md p-4 bg-white">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h4 class="font-medium text-gray-900">Program Günleri</h4>
-                                    <button type="button" onclick="addDailyProgram()" class="bg-admin-primary text-white px-3 py-1 rounded text-sm hover:bg-admin-secondary">
-                                        + Gün Ekle
-                                    </button>
-                                </div>
-                                <div id="dailyProgramList" class="space-y-3">
-                                    <!-- JavaScript ile doldurulacak -->
-                                </div>
-                            </div>
-                            <input type="hidden" id="dailyProgramData" name="daily_program">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ✅ 7. UÇUŞ BİLGİLERİ -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">7</span>
-                        Uçuş Bilgileri
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="tourDepartureInfo" class="block text-sm font-medium text-gray-700 mb-2">Gidiş Uçuş Bilgileri</label>
-                            <textarea id="tourDepartureInfo" name="departure_info" rows="3"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="Uçak - Suudi Air&#10;İstanbul > Medine&#10;20 Ağustos 2024, Salı"></textarea>
-                        </div>
-                        
-                        <div>
-                            <label for="tourReturnInfo" class="block text-sm font-medium text-gray-700 mb-2">Dönüş Uçuş Bilgileri</label>
-                            <textarea id="tourReturnInfo" name="return_info" rows="3"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="Uçak - Suudi Air&#10;Cidde > İstanbul&#10;29 Ağustos 2024, Perşembe"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ✅ 8. BELGELER VE ŞARTLAR -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-gray-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">8</span>
-                        Belgeler ve Şartlar
-                    </h3>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <label for="tourRequiredDocuments" class="block text-sm font-medium text-gray-700 mb-2">Gerekli Evraklar</label>
-                            <textarea id="tourRequiredDocuments" name="required_documents" rows="3"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="• En az 1 yıllık geçerlilik süresi olan pasaport&#10;• 2 adet beyaz fon renkli vesikalık fotoğraf&#10;• Nüfus cüzdanı fotokopisi"></textarea>
-                        </div>
-                        
-                        <div>
-                            <label for="tourImportantNotes" class="block text-sm font-medium text-gray-700 mb-2">Önemli Bilgilendirmeler</label>
-                            <textarea id="tourImportantNotes" name="important_notes" rows="4"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="• Kesin kayıt için tur ücretinin %30'unun ödenmesi gerekmektedir.&#10;• Bakiye hareket tarihinden 7 gün önceden tamamlanır.&#10;• Tura katılacak misafirlerimiz hareket tarihinden 20 gün önce gerekli evrakları şirketimize ulaştırmaları zorunludur."></textarea>
-                        </div>
-                        
-                        <div>
-                            <label for="tourCancellationPolicy" class="block text-sm font-medium text-gray-700 mb-2">İptal Koşulları</label>
-                            <textarea id="tourCancellationPolicy" name="cancellation_policy" rows="4"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="• Vize alındıktan sonra yapılan iptallerde 250 USD alınır.&#10;• Uçak bileti kesildikten sonraki iptallerde ise 450 USD ücret alınır.&#10;• Hareket tarihinden bir hafta evvel yapılan iptallerde 2 gece No Show ücreti alınır."></textarea>
-                        </div>
-                        
-                        <div>
-                            <label for="tourPaymentTerms" class="block text-sm font-medium text-gray-700 mb-2">Ödeme Şartları</label>
-                            <textarea id="tourPaymentTerms" name="payment_terms" rows="3"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="• %30 peşin ödeme ile rezervasyon kesinleşir&#10;• Kalan bakiye hareket tarihinden 7 gün önce ödenmelidir&#10;• Kredi kartı ile taksitli ödeme imkanı mevcuttur"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ✅ 9. ANA RESİM -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">9</span>
-                        Ana Resim
-                    </h3>
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <form id="loginForm" class="space-y-6">
+                    <div id="loginError" class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg"></div>
                     
                     <div>
-                        <label for="tourImageUpload" class="block text-sm font-medium text-gray-700 mb-2">Tur Ana Resmi</label>
-                        <input type="file" id="tourImageUpload" accept="image/*"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
-                        
-                        <!-- Resim Önizleme -->
-                        <div id="imagePreview" class="hidden mt-4">
-                            <img id="previewImage" src="" alt="Önizleme" class="w-full max-w-md h-48 object-cover rounded-lg border">
-                            <button type="button" onclick="removeMainImage()" class="mt-2 text-red-600 hover:text-red-800 text-sm">
-                                Resmi Kaldır
-                            </button>
-                        </div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kullanıcı Adı</label>
+                        <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent" required>
                     </div>
-                </div>
-
-                <!-- ✅ 10. SEO VE EKSTRA AYARLAR -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3">10</span>
-                        SEO ve Ayarlar
-                    </h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="tourPriority" class="block text-sm font-medium text-gray-700 mb-2">Öncelik (0-100)</label>
-                            <input type="number" id="tourPriority" name="priority" min="0" max="100" value="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary">
-                        </div>
-                        
-                        <div>
-                            <label for="tourSeoKeywords" class="block text-sm font-medium text-gray-700 mb-2">SEO Anahtar Kelimeler</label>
-                            <input type="text" id="tourSeoKeywords" name="seo_keywords"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                   placeholder="umre, hac, mekke, medine, tur">
-                        </div>
-                        
-                        <div class="md:col-span-2">
-                            <label for="tourDescription" class="block text-sm font-medium text-gray-700 mb-2">Detaylı Açıklama</label>
-                            <textarea id="tourDescription" name="description" rows="4"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-admin-primary focus:border-admin-primary"
-                                      placeholder="Turun detaylı açıklamasını buraya yazın..."></textarea>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Şifre</label>
+                        <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-transparent" required>
                     </div>
-                </div>
-
-                <!-- ✅ FORM BUTTONS -->
-                <div class="flex justify-end space-x-4 pt-6 border-t">
-                    <button type="button" onclick="closeTourForm()" 
-                            class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                        İptal
+                    
+                    <button type="submit" id="loginBtn" class="w-full bg-admin-primary text-white py-3 px-4 rounded-lg hover:bg-admin-secondary transition-colors font-medium">
+                        Giriş Yap
                     </button>
-                    <button type="submit" id="tourSubmitBtn"
-                            class="px-6 py-2 bg-admin-primary text-white rounded-md hover:bg-admin-secondary transition-colors">
-                        <span id="tourSubmitText">Kaydet</span>
-                        <div id="tourSubmitSpinner" class="hidden animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full ml-2"></div>
-                    </button>
-                </div>
-            </form>
+                    
+                    <div class="text-center text-sm text-gray-600">
+                        <p>Demo: <strong>admin</strong> / <strong>admin123</strong></p>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- ✅ GÜNLÜK PROGRAM JAVASCRIPT -->
-<script>
-let dailyPrograms = [];
-
-function addDailyProgram() {
-    const dayNumber = dailyPrograms.length + 1;
-    const program = {
-        day: dayNumber,
-        title: `${dayNumber}. Gün`,
-        description: '',
-        activities: []
-    };
-    
-    dailyPrograms.push(program);
-    renderDailyPrograms();
-}
-
-function removeDailyProgram(index) {
-    dailyPrograms.splice(index, 1);
-    
-    // Gün numaralarını yeniden düzenle
-    dailyPrograms.forEach((program, i) => {
-        program.day = i + 1;
-        program.title = `${i + 1}. Gün`;
-    });
-    
-    renderDailyPrograms();
-}
-
-function updateDailyProgram(index, field, value) {
-    if (dailyPrograms[index]) {
-        dailyPrograms[index][field] = value;
-        updateDailyProgramData();
-    }
-}
-
-function renderDailyPrograms() {
-    const container = document.getElementById('dailyProgramList');
-    
-    if (dailyPrograms.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center py-4">Henüz günlük program eklenmemiş</p>';
-        return;
-    }
-    
-    container.innerHTML = dailyPrograms.map((program, index) => `
-        <div class="border border-gray-200 rounded-lg p-4 bg-white">
-            <div class="flex justify-between items-center mb-3">
-                <input type="text" 
-                       value="${program.title}" 
-                       onchange="updateDailyProgram(${index}, 'title', this.value)"
-                       class="font-medium text-gray-900 bg-transparent border-none outline-none">
-                <button type="button" onclick="removeDailyProgram(${index})" 
-                        class="text-red-600 hover:text-red-800 text-sm">
-                    Sil
-                </button>
-            </div>
-            <textarea 
-                placeholder="Bu günün programını yazın..."
-                onchange="updateDailyProgram(${index}, 'description', this.value)"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                rows="3">${program.description}</textarea>
-        </div>
-    `).join('');
-    
-    updateDailyProgramData();
-}
-
-function updateDailyProgramData() {
-    document.getElementById('dailyProgramData').value = JSON.stringify(dailyPrograms);
-}
-
-function removeMainImage() {
-    document.getElementById('imagePreview').classList.add('hidden');
-    document.getElementById('tourImageUpload').value = '';
-    
-    if (window.tourFormHandler) {
-        window.tourFormHandler.tempImageUrl = null;
-    }
-}
-
-// Form yüklendiğinde kategorileri yükle
-document.addEventListener('DOMContentLoaded', function() {
-    loadTourCategories();
-});
-
-async function loadTourCategories() {
-    try {
-        const response = await fetch('/api/categories');
-        const data = await response.json();
-        
-        if (data.success && data.data.categories) {
-            const select = document.getElementById('tourCategory');
-            select.innerHTML = '<option value="">Kategori Seçin</option>';
+    <!-- Admin Dashboard Layout -->
+    <div id="adminDashboard" class="hidden min-h-screen bg-gray-50">
+        <div class="flex">
+            <!-- Sidebar Component -->
+            <div id="sidebarComponent"></div>
             
-            data.data.categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                select.appendChild(option);
+            <!-- Main Content -->
+            <div class="flex-1 ml-64">
+                <!-- Top Bar Component -->
+                <div id="topBarComponent"></div>
+                
+                <!-- Content Area -->
+                <div class="p-6">
+                    <div id="contentArea">
+                        <!-- Dynamic content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load scripts with error handling -->
+    <script>
+        console.log('🔄 Admin panel loading...');
+        
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('❌ Script error:', e.filename, e.message);
+        });
+        
+        // Load scripts sequentially
+        const scripts = [
+            'assets/js/api.js?v=3',
+            'assets/js/auth.js?v=3', 
+            'components/sidebar.js?v=3',
+            'components/topbar.js?v=3',
+            'pages/dashboard.js?v=3',
+            'pages/tours.js?v=3',
+            'pages/categories.js?v=3',
+            'pages/messages.js?v=3',
+            'pages/settings.js?v=3',
+            'assets/js/app.js?v=3'
+        ];
+        
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    console.log('✅ Loaded:', src);
+                    resolve();
+                };
+                script.onerror = () => {
+                    console.error('❌ Failed to load:', src);
+                    reject(new Error(`Failed to load ${src}`));
+                };
+                document.head.appendChild(script);
             });
         }
-    } catch (error) {
-        console.error('Kategoriler yüklenirken hata:', error);
-    }
-}
-</script>
-    
+        
+        // Load all scripts sequentially
+        async function loadAllScripts() {
+            try {
+                for (const script of scripts) {
+                    await loadScript(script);
+                }
+                console.log('🎉 All scripts loaded successfully!');
+            } catch (error) {
+                console.error('❌ Script loading failed:', error);
+                alert('Admin panel yüklenirken hata oluştu. Sayfayı yenileyin.');
+            }
+        }
+        
+        loadAllScripts();
+    </script>
 </body>
 </html>

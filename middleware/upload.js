@@ -1,75 +1,55 @@
-// middleware/upload.js
 const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;
+const { v4: uuidv4 } = require('uuid');
 
-// Storage configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = 'uploads/tours/';
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-        }
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
+// Multer storage configuration
+const storage = multer.memoryStorage();
 
-// File filter
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-    } else {
-        cb(new Error('Sadece resim dosyaları yüklenebilir'));
-    }
-};
-
-// Multer configuration
 const upload = multer({
-    storage,
-    limits: { 
-        fileSize: 5 * 1024 * 1024 // 5MB
-    },
-    fileFilter
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Sadece JPEG, PNG ve WebP formatları desteklenir'), false);
+    }
+  }
 });
 
-// Thumbnail creation function
-const createThumbnails = async (filePath, filename) => {
-    const baseName = path.parse(filename).name;
-    const uploadDir = path.dirname(filePath);
-    
-    try {
-        // Large thumbnail (800x600)
-        await sharp(filePath)
-            .resize(800, 600, { fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 85 })
-            .toFile(path.join(uploadDir, `${baseName}_large.jpg`));
-        
-        // Medium thumbnail (400x300)
-        await sharp(filePath)
-            .resize(400, 300, { fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 80 })
-            .toFile(path.join(uploadDir, `${baseName}_medium.jpg`));
-        
-        // Small thumbnail (150x150)
-        await sharp(filePath)
-            .resize(150, 150, { fit: 'cover' })
-            .jpeg({ quality: 75 })
-            .toFile(path.join(uploadDir, `${baseName}_thumb.jpg`));
-        
-        console.log(`✅ Thumbnails created for: ${filename}`);
-        return true;
-    } catch (error) {
-        console.error('❌ Thumbnail creation error:', error);
-        return false;
-    }
+// Image processing function
+const processAndSaveImage = async (buffer, folder, sizes = []) => {
+  const filename = uuidv4();
+  const uploadDir = path.join(__dirname, '..', 'uploads', folder);
+  
+  // Create directory if it doesn't exist
+  await fs.mkdir(uploadDir, { recursive: true });
+  
+  const savedFiles = {};
+  
+  // Original size
+  const originalPath = path.join(uploadDir, `${filename}.webp`);
+  await sharp(buffer)
+    .webp({ quality: 90 })
+    .toFile(originalPath);
+  savedFiles.original = `${filename}.webp`;
+  
+  // Generate different sizes if specified
+  for (const size of sizes) {
+    const sizePath = path.join(uploadDir, `${filename}_${size.name}.webp`);
+    await sharp(buffer)
+      .resize(size.width, size.height, { fit: 'cover' })
+      .webp({ quality: 80 })
+      .toFile(sizePath);
+    savedFiles[size.name] = `${filename}_${size.name}.webp`;
+  }
+  
+  return savedFiles;
 };
 
-module.exports = {
-    upload,
-    createThumbnails
-};
+module.exports = { upload, processAndSaveImage };
