@@ -1,0 +1,100 @@
+<!-- Settings Section with Logo Upload -->
+<div id="settings" class="content-section hidden">
+    <h3 class="text-2xl font-bold mb-6">Site Ayarları</h3>
+    
+    <!-- Logo Upload Section -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h4 class="text-lg font-semibold mb-4">Logo Yönetimi</h4>
+        <div class="flex items-center space-x-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Mevcut Logo</label>
+                <img id="currentLogo" src="/images/logo.svg" alt="Logo" class="h-20 bg-gray-100 p-2 rounded">
+            </div>
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Yeni Logo Yükle</label>
+                <form id="logoUploadForm" class="flex items-center space-x-3">
+                    <input type="file" id="logoFile" accept="image/*" class="flex-1 px-4 py-2 border rounded-lg">
+                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Yükle</button>
+                </form>
+                <p class="text-xs text-gray-500 mt-1">Önerilen boyut: 200x60px, Max: 2MB, Format: PNG, JPG, SVG</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- General Settings -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h4 class="text-lg font-semibold mb-4">Genel Ayarlar</h4>
+        <form id="settingsForm" class="space-y-6">
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Site Adı</label>
+                    <input type="text" name="site_name" class="w-full px-4 py-2 border rounded-lg" placeholder="Nahletur">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Site Açıklaması</label>
+                    <input type="text" name="site_description" class="w-full px-4 py-2 border rounded-lg" placeholder="Hac ve Umre Tur Hizmetleri">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Telefon</label>
+                    <input type="text" name="contact_phone" class="w-full px-4 py-2 border rounded-lg" placeholder="+90 555 000 00 00">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp (Başında 90 ile)</label>
+                    <input type="text" name="contact_whatsapp" class="w-full px-4 py-2 border rounded-lg" placeholder="905551234567">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" name="contact_email" class="w-full px-4 py-2 border rounded-lg" placeholder="info@nahletur.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Adres</label>
+                    <input type="text" name="contact_address" class="w-full px-4 py-2 border rounded-lg" placeholder="İstanbul, Türkiye">
+                </div>
+            </div>
+            
+            <!-- Social Media -->
+            <div class="border-t pt-6">
+                <h4 class="text-lg font-semibold mb-4">Sosyal Medya</h4>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Facebook URL</label>
+                        <input type="url" name="facebook_url" class="w-full px-4 py-2 border rounded-lg" placeholder="https://facebook.com/nahletur">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Instagram URL</label>
+                        <input type="url" name="instagram_url" class="w-full px-4 py-2 border rounded-lg" placeholder="https://instagram.com/nahletur">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Twitter URL</label>
+                        <input type="url" name="twitter_url" class="w-full px-4 py-2 border rounded-lg" placeholder="https://twitter.com/nahletur">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">YouTube URL</label>
+                        <input type="url" name="youtube_url" class="w-full px-4 py-2 border rounded-lg" placeholder="https://youtube.com/nahletur">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SEO Settings -->
+            <div class="border-t pt-6">
+                <h4 class="text-lg font-semibold mb-4">SEO Ayarları</h4>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Meta Başlık</label>
+                        <input type="text" name="meta_title" class="w-full px-4 py-2 border rounded-lg" placeholder="Nahletur - Hac ve Umre Turları">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Meta Açıklama</label>
+                        <textarea name="meta_description" rows="2" class="w-full px-4 py-2 border rounded-lg" placeholder="Güvenilir ve profesyonel Hac ve Umre tur organizasyonları"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Meta Anahtar Kelimeler</label>
+                        <input type="text" name="meta_keywords" class="w-full px-4 py-2 border rounded-lg" placeholder="hac, umre, hac turları, umre turları, nahletur">
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">Ayarları Kaydet</button>
+        </form>
+    </div>
+</div>

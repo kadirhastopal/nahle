@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { Settings } = require('../models');
 const { authMiddleware } = require('../middlewares/auth');
+const { upload, processImage } = require('../utils/imageUpload');
 
 // Get all settings (Public for frontend)
 router.get('/', async (req, res) => {
@@ -64,6 +65,37 @@ router.post('/', authMiddleware, async (req, res) => {
         res.status(500).json({ 
             success: false, 
             message: 'Ayarlar güncellenemedi' 
+        });
+    }
+});
+
+// Upload logo
+router.post('/logo', authMiddleware, upload.single('logo'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Logo dosyası bulunamadı'
+            });
+        }
+        
+        const logoPath = await processImage(req.file, 'settings');
+        
+        await Settings.upsert({
+            key: 'site_logo',
+            value: logoPath.original,
+            type: 'file'
+        });
+        
+        res.json({
+            success: true,
+            data: { logo: logoPath.original },
+            message: 'Logo güncellendi'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Logo yüklenemedi'
         });
     }
 });

@@ -36,12 +36,27 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('layout', 'layout');
 
-// Rate limiting
+// Rate limiting - Fixed for proxy
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res) => {
+        res.status(429).json({
+            error: 'Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin.'
+        });
+    },
+    skip: (req) => {
+        // Skip rate limiting for admin routes when authenticated
+        return req.path.startsWith('/api/auth') || req.headers.authorization;
+    }
 });
+
 app.use('/api/', limiter);
+
+// Trust proxy
+app.set('trust proxy', 1);
 
 // Routes
 app.use('/api/auth', require('./src/routes/auth'));
