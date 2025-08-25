@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>Nahletur</title>
+    <meta name="description" content="<%= typeof meta_description !== 'undefined' ? meta_description : 'Hac ve Umre turları' %>">
+    <meta name="keywords" content="<%= typeof meta_keywords !== 'undefined' ? meta_keywords : 'hac, umre, tur' %>">
+    <link href="/css/style.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="text-2xl font-bold text-green-700">Nahletur</a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/" class="hover:text-green-600">Ana Sayfa</a>
+                    <a href="/hac-turlari" class="hover:text-green-600">Hac Turları</a>
+                    <a href="/umre-turlari" class="hover:text-green-600">Umre Turları</a>
+                    <a href="/blog" class="hover:text-green-600">Blog</a>
+                    <a href="/hakkimizda" class="hover:text-green-600">Hakkımızda</a>
+                    <a href="/iletisim" class="hover:text-green-600">İletişim</a>
+                </div>
+                <button class="md:hidden" onclick="toggleMobileMenu()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="hidden md:hidden pb-4">
+                <a href="/" class="block py-2 hover:text-green-600">Ana Sayfa</a>
+                <a href="/hac-turlari" class="block py-2 hover:text-green-600">Hac Turları</a>
+                <a href="/umre-turlari" class="block py-2 hover:text-green-600">Umre Turları</a>
+                <a href="/blog" class="block py-2 hover:text-green-600">Blog</a>
+                <a href="/hakkimizda" class="block py-2 hover:text-green-600">Hakkımızda</a>
+                <a href="/iletisim" class="block py-2 hover:text-green-600">İletişim</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <%- body %>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 mt-20">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Nahletur</h3>
+                    <p class="text-gray-400">Güvenilir Hac ve Umre turları ile hayalinizdeki kutsal yolculuğa çıkın.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Hızlı Linkler</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/hac-turlari" class="hover:text-white">Hac Turları</a></li>
+                        <li><a href="/umre-turlari" class="hover:text-white">Umre Turları</a></li>
+                        <li><a href="/blog" class="hover:text-white">Blog</a></li>
+                        <li><a href="/hakkimizda" class="hover:text-white">Hakkımızda</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">İletişim</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>📞 +90 555 000 00 00</li>
+                        <li>📧 info@nahletur.com</li>
+                        <li>📍 İstanbul, Türkiye</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">WhatsApp İletişim</h4>
+                    <a href="https://wa.me/905550000000" target="_blank" class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+                        WhatsApp'tan Yazın
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Nahletur. Tüm hakları saklıdır.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{
+  "name": "nahletur-website",
+  "version": "1.0.0",
+  "description": "Hac ve Umre Tur Rezervasyon Sistemi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "setup": "node scripts/setup-database.js",
+    "build:css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop nahletur",
+    "pm2:restart": "pm2 restart nahletur",
+    "pm2:logs": "pm2 logs nahletur"
+  },
+  "keywords": [
+    "hac",
+    "umre",
+    "tur",
+    "rezervasyon"
+  ],
+  "author": "Nahletur",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.10",
+    "express": "^4.18.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-rate-limit": "^6.8.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.6.0",
+    "nodemailer": "^6.9.4",
+    "sequelize": "^6.32.1",
+    "sharp": "^0.32.4"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "nodemon": "^3.0.1",
+    "postcss": "^8.4.27",
+    "postcss-cli": "^10.1.0",
+    "tailwindcss": "^4.1.12"
+  }
+}

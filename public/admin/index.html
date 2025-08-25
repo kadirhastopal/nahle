@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nahletur Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Login Section -->
+    <div id="loginSection" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-600 to-green-800">
+        <div class="max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-white mb-2">Nahletur</h1>
+                <p class="text-green-100">Admin Panel</p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-xl p-8">
+                <form id="loginForm" class="space-y-6">
+                    <div id="loginError" class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg"></div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kullanıcı Adı</label>
+                        <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Şifre</label>
+                        <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        Giriş Yap
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <!-- Top Bar -->
+        <nav class="bg-white shadow-sm border-b">
+            <div class="flex justify-between items-center px-6 py-4">
+                <h2 class="text-xl font-semibold">Nahletur Admin Panel</h2>
+                <button onclick="logout()" class="text-red-600 hover:text-red-700">Çıkış Yap</button>
+            </div>
+        </nav>
+
+        <div class="flex">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-gray-800 min-h-screen">
+                <nav class="mt-5">
+                    <a href="#" onclick="showSection('dashboard')" class="menu-item block px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">Dashboard</a>
+                    <a href="#" onclick="showSection('tours')" class="menu-item block px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">Turlar</a>
+                    <a href="#" onclick="showSection('blogs')" class="menu-item block px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">Blog</a>
+                    <a href="#" onclick="showSection('testimonials')" class="menu-item block px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">Yorumlar</a>
+                    <a href="#" onclick="showSection('contacts')" class="menu-item block px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">Mesajlar</a>
+                    <a href="#" onclick="showSection('settings')" class="menu-item block px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">Ayarlar</a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-6">
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="content-section">
+                    <h3 class="text-2xl font-bold mb-6">Dashboard</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-gray-500 text-sm">Toplam Tur</h4>
+                            <p class="text-3xl font-bold text-green-600" id="totalTours">0</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-gray-500 text-sm">Blog Yazısı</h4>
+                            <p class="text-3xl font-bold text-blue-600" id="totalBlogs">0</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-gray-500 text-sm">Yorumlar</h4>
+                            <p class="text-3xl font-bold text-purple-600" id="totalTestimonials">0</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-gray-500 text-sm">Mesajlar</h4>
+                            <p class="text-3xl font-bold text-red-600" id="totalContacts">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tours Section -->
+                <div id="tours" class="content-section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold">Turlar</h3>
+                        <button onclick="openTourModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Yeni Tur Ekle</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Başlık</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tip</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fiyat</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="toursTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Blogs Section -->
+                <div id="blogs" class="content-section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold">Blog Yazıları</h3>
+                        <button onclick="openBlogModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Yeni Yazı Ekle</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">Başlık</th>
+                                    <th class="px-6 py-3 text-left">Kategori</th>
+                                    <th class="px-6 py-3 text-left">Durum</th>
+                                    <th class="px-6 py-3 text-left">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blogsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Testimonials Section -->
+                <div id="testimonials" class="content-section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold">Müşteri Yorumları</h3>
+                        <button onclick="openTestimonialModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Yeni Yorum Ekle</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">İsim</th>
+                                    <th class="px-6 py-3 text-left">Tur Tipi</th>
+                                    <th class="px-6 py-3 text-left">Puan</th>
+                                    <th class="px-6 py-3 text-left">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="testimonialsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Contacts Section -->
+                <div id="contacts" class="content-section hidden">
+                    <h3 class="text-2xl font-bold mb-6">İletişim Mesajları</h3>
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">İsim</th>
+                                    <th class="px-6 py-3 text-left">Email</th>
+                                    <th class="px-6 py-3 text-left">Konu</th>
+                                    <th class="px-6 py-3 text-left">Tarih</th>
+                                    <th class="px-6 py-3 text-left">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contactsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div id="settings" class="content-section hidden">
+                    <h3 class="text-2xl font-bold mb-6">Site Ayarları</h3>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <form id="settingsForm" class="space-y-6">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Site Adı</label>
+                                    <input type="text" name="site_name" class="w-full px-4 py-2 border rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Site Açıklaması</label>
+                                    <input type="text" name="site_description" class="w-full px-4 py-2 border rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Telefon</label>
+                                    <input type="text" name="contact_phone" class="w-full px-4 py-2 border rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp</label>
+                                    <input type="text" name="contact_whatsapp" class="w-full px-4 py-2 border rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input type="email" name="contact_email" class="w-full px-4 py-2 border rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Adres</label>
+                                    <input type="text" name="contact_address" class="w-full px-4 py-2 border rounded-lg">
+                                </div>
+                            </div>
+                            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">Kaydet</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Tour Modal -->
+    <div id="tourModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+            <h3 id="modalTitle" class="text-xl font-bold mb-4">Yeni Tur Ekle</h3>
+            <form id="tourForm" onsubmit="saveTour(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Başlık</label>
+                        <input type="text" name="title" required class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Tip</label>
+                        <select name="type" required class="w-full px-3 py-2 border rounded-lg">
+                            <option value="hac">Hac</option>
+                            <option value="umre">Umre</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Fiyat</label>
+                        <input type="number" name="price" required class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Para Birimi</label>
+                        <select name="currency" class="w-full px-3 py-2 border rounded-lg">
+                            <option value="TRY">TRY</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Süre</label>
+                        <input type="text" name="duration" placeholder="14 Gün" required class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Kontenjan</label>
+                        <input type="number" name="quota" required class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Müsait Kontenjan</label>
+                        <input type="number" name="available_quota" required class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Hareket Tarihi</label>
+                        <input type="date" name="departure_date" required class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Dönüş Tarihi</label>
+                        <input type="date" name="return_date" required class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Açıklama</label>
+                    <textarea name="description" rows="3" required class="w-full px-3 py-2 border rounded-lg"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Özellikler (virgülle ayır)</label>
+                    <input type="text" name="features" placeholder="5 Yıldızlı Otel, Türkçe Rehber" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Dahil Olanlar (virgülle ayır)</label>
+                    <input type="text" name="includes" placeholder="Uçak Bileti, Konaklama, 3 Öğün Yemek" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Dahil Olmayanlar (virgülle ayır)</label>
+                    <input type="text" name="excludes" placeholder="Kurban Bedeli, Kişisel Harcamalar" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="is_featured" class="mr-2">
+                        <span class="text-sm">Öne Çıkan</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="is_active" checked class="mr-2">
+                        <span class="text-sm">Aktif</span>
+                    </label>
+                </div>
+                
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeTourModal()" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">İptal</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/admin/admin-panel.js"></script>
+</body>
+</html>

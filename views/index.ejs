@@ -1,0 +1,94 @@
+<!-- Hero Section -->
+<section class="bg-gradient-to-r from-green-600 to-green-800 text-white py-20">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">Kutsal Topraklara Yolculuk</h1>
+        <p class="text-xl mb-8">Hac ve Umre turlarında güvenilir rehberiniz</p>
+        <div class="space-x-4">
+            <a href="/hac-turlari" class="inline-block bg-white text-green-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100">Hac Turları</a>
+            <a href="/umre-turlari" class="inline-block bg-green-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 border-2 border-white">Umre Turları</a>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Tours -->
+<section class="py-16">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Öne Çıkan Turlarımız</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <% if (typeof tours !== 'undefined' && tours.length > 0) { %>
+                <% tours.forEach(tour => { %>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <% if (tour.images && tour.images[0]) { %>
+                            <img src="<%= tour.images[0].thumbnail || tour.images[0].original %>" alt="<%= tour.title %>" class="w-full h-48 object-cover">
+                        <% } else { %>
+                            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                <span class="text-gray-400">Görsel Yok</span>
+                            </div>
+                        <% } %>
+                        <div class="p-6">
+                            <span class="inline-block px-3 py-1 text-sm font-semibold text-white bg-green-600 rounded-full mb-2">
+                                <%= tour.type === 'hac' ? 'Hac' : 'Umre' %>
+                            </span>
+                            <h3 class="text-xl font-semibold mb-2"><%= tour.title %></h3>
+                            <p class="text-gray-600 mb-4"><%= tour.description ? tour.description.substring(0, 100) + '...' : '' %></p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-green-600"><%= tour.currency === 'USD' ? '$' : '₺' %><%= tour.price %></span>
+                                <a href="/tur/<%= tour.slug %>" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Detaylar</a>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="col-span-3 text-center py-8">
+                    <p class="text-gray-500">Henüz tur eklenmemiş.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Müşteri Yorumları</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <% if (typeof testimonials !== 'undefined' && testimonials.length > 0) { %>
+                <% testimonials.forEach(testimonial => { %>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex items-center mb-4">
+                            <% if (testimonial.image) { %>
+                                <img src="<%= testimonial.image %>" alt="<%= testimonial.name %>" class="w-12 h-12 rounded-full mr-4">
+                            <% } else { %>
+                                <div class="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
+                            <% } %>
+                            <div>
+                                <h4 class="font-semibold"><%= testimonial.name %></h4>
+                                <div class="flex text-yellow-400">
+                                    <% for(let i = 0; i < testimonial.rating; i++) { %>
+                                        <span>★</span>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-gray-600"><%= testimonial.comment %></p>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="col-span-3 text-center py-8">
+                    <p class="text-gray-500">Henüz yorum eklenmemiş.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-green-700 text-white py-12">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-4">Hayalinizdeki Kutsal Yolculuğa Başlayın</h2>
+        <p class="text-xl mb-8">WhatsApp üzerinden bizimle iletişime geçin ve yerinizi ayırtın</p>
+        <a href="https://wa.me/905550000000" target="_blank" class="inline-block bg-white text-green-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100">
+            WhatsApp'tan İletişime Geç
+        </a>
+    </div>
+</section>

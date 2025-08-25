@@ -1,0 +1,49 @@
+<% layout('layout') -%>
+
+<section class="py-12">
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold text-center mb-12">Blog</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <% if (blogs && blogs.length > 0) { %>
+                <% blogs.forEach(blog => { %>
+                    <article class="bg-white rounded-lg shadow-lg overflow-hidden hover-scale">
+                        <% if (blog.image) { %>
+                            <img src="<%= blog.image %>" alt="<%= blog.title %>" class="w-full h-48 object-cover">
+                        <% } else { %>
+                            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                <span class="text-gray-400">Görsel Yok</span>
+                            </div>
+                        <% } %>
+                        
+                        <div class="p-6">
+                            <div class="flex items-center text-sm text-gray-500 mb-2">
+                                <span><%= new Date(blog.published_at).toLocaleDateString('tr-TR') %></span>
+                                <span class="mx-2">•</span>
+                                <span><%= blog.views %> görüntülenme</span>
+                            </div>
+                            
+                            <h2 class="text-xl font-semibold mb-3">
+                                <a href="/blog/<%= blog.slug %>" class="hover:text-green-600">
+                                    <%= blog.title %>
+                                </a>
+                            </h2>
+                            
+                            <p class="text-gray-600 mb-4">
+                                <%= blog.excerpt || (blog.content ? blog.content.substring(0, 150) + '...' : '') %>
+                            </p>
+                            
+                            <a href="/blog/<%= blog.slug %>" class="text-green-600 font-medium hover:text-green-700">
+                                Devamını Oku →
+                            </a>
+                        </div>
+                    </article>
+                <% }) %>
+            <% } else { %>
+                <div class="col-span-3 text-center py-12">
+                    <p class="text-gray-500 text-lg">Henüz blog yazısı eklenmemiş.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</section>
